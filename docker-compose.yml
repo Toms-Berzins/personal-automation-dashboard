@@ -1,0 +1,179 @@
+version: '3.8'
+
+services:
+  # ============================================
+  # PostgreSQL Database
+  # ============================================
+  postgres:
+    image: postgres:15-alpine
+    container_name: automation-dashboard-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-automation_db}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============================================
+  # Redis Cache (for Firecrawl caching)
+  # ============================================
+  redis:
+    image: redis:7-alpine
+    container_name: automation-dashboard-cache
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # ============================================
+  # Backend API
+  # ============================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: automation-dashboard-api
+    restart: unless-stopped
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
+      - PORT=8000
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-changeme}@postgres:5432/${POSTGRES_DB:-automation_db}
+      - REDIS_URL=redis://redis:6379
+      - FIRECRAWL_API_KEY=${FIRECRAWL_API_KEY}
+      - FIRECRAWL_API_URL=${FIRECRAWL_API_URL:-https://api.firecrawl.dev}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ============================================
+  # Frontend Dashboard
+  # ============================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_URL=${VITE_API_URL:-http://localhost:8000}
+    container_name: automation-dashboard-ui
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-3000}:80"
+    depends_on:
+      - backend
+    networks:
+      - app_network
+
+  # ============================================
+  # Granules Tracker Scraper
+  # (Only runs when explicitly started)
+  # ============================================
+  scraper-granules:
+    build:
+      context: ./sections/granules-tracker/scrapers
+      dockerfile: Dockerfile
+    container_name: scraper-granules
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
+      - FIRECRAWL_API_KEY=${FIRECRAWL_API_KEY}
+      - FIRECRAWL_API_URL=${FIRECRAWL_API_URL:-https://api.firecrawl.dev}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-changeme}@postgres:5432/${POSTGRES_DB:-automation_db}
+      - REDIS_URL=redis://redis:6379
+      - SECTION_NAME=granules-tracker
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - scraper_logs:/app/logs
+    networks:
+      - app_network
+    profiles:
+      - scraping
+
+  # ============================================
+  # pgAdmin (Development Only)
+  # ============================================
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: automation-dashboard-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@automation-dashboard.local}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - app_network
+    depends_on:
+      - postgres
+    profiles:
+      - development
+
+  # ============================================
+  # MCP Gateway (Optional - for AI integration)
+  # ============================================
+  mcp-gateway:
+    image: docker/mcp-gateway:latest
+    container_name: automation-mcp-gateway
+    restart: unless-stopped
+    ports:
+      - "${MCP_PORT:-11434}:11434"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - mcp_data:/data
+    networks:
+      - app_network
+    environment:
+      - MCP_SERVERS=firecrawl,github,database
+    profiles:
+      - mcp
+
+networks:
+  app_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  scraper_logs:
+    driver: local
+  pgadmin_data:
+    driver: local
+  mcp_data:
+    driver: local

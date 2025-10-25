@@ -1,0 +1,52 @@
+version: '3.8'
+
+# Development overrides for docker-compose.yml
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+      target: development
+    environment:
+      - NODE_ENV=development
+      - DEBUG=app:*
+    volumes:
+      # Enable hot reloading
+      - ./backend:/app
+      - /app/node_modules
+    command: npm run dev
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+      target: development
+    environment:
+      - NODE_ENV=development
+    volumes:
+      # Enable hot reloading
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+      - "24678:24678"  # Vite HMR port
+    command: npm run dev
+
+  scraper-granules:
+    volumes:
+      # Enable code changes without rebuild
+      - ./sections/granules-tracker/scrapers:/app
+      - /app/node_modules
+      - scraper_logs:/app/logs
+    environment:
+      - DEBUG=scraper:*
+
+  # Auto-start pgAdmin in development
+  pgadmin:
+    profiles: []
+
+  # Enable MCP Gateway in development
+  mcp-gateway:
+    profiles: []
