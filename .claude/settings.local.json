@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/berzi/AppData/Roaming/Claude/**)",
+      "Bash(claude mcp:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(mkdir:*)",
+      "Bash(taskkill:*)",
+      "Bash(npm install:*)",
+      "Bash(curl:*)",
+      "Bash(npm run dev)",
+      "Bash(Get-Process)",
+      "Bash(Where-Object {$_rocessName -eq \"node\"})",
+      "Bash(Stop-Process -Force)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(cat:*)",
+      "Bash(docker stop:*)",
+      "Bash(docker rm:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

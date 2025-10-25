@@ -1,0 +1,22 @@
+{
+  "name": "on-demand-scraper",
+  "version": "1.0.0",
+  "description": "On-demand web scraping tool using Firecrawl API for price tracking and data extraction",
+  "type": "module",
+  "main": "scraper.js",
+  "scripts": {
+    "search": "node scraper.js search",
+    "scrape": "node scraper.js scrape",
+    "history": "node scraper.js history"
+  },
+  "dependencies": {
+    "@mendable/firecrawl-js": "^1.4.0",
+    "pg": "^8.11.0",
+    "dotenv": "^16.4.5",
+    "commander": "^12.0.0",
+    "chalk": "^5.3.0"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.11.0"
+  }
+}

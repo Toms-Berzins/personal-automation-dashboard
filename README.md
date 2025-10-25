@@ -9,26 +9,38 @@
 
 A modular, extensible dashboard system that combines web scraping, data automation, and visualization. Each section is a standalone module tracking specific data points or insights.
 
-## 🎯 Current Sections
+## 🎯 Features
 
-### 1. 🌲 Granules Price Tracker
-**Status:** 🚧 In Development
+### 🔍 On-Demand Web Scraper
+**Status:** ✅ Ready to Use
 
-Track wood pellet/granules prices across multiple retailers to find the best month to buy.
+A powerful CLI tool for on-demand product price scraping and tracking using Firecrawl API.
 
 **Features:**
-- Daily price scraping from major retailers
-- Historical price trends (12+ months)
-- Seasonal analysis (best months to buy)
-- Price alerts when deals are found
-- Multi-store comparison
+- Search the web for any product using natural language
+- Scrape specific URLs to extract prices and product data
+- Save price history to PostgreSQL database
+- Track price changes over time
+- Generic schema works with any product type
 
-[View Documentation →](./sections/granules-tracker/README.md)
+[View Scraper Documentation →](./tools/scraper/README.md)
 
-### 2. 📦 [Your Next Section]
-**Status:** 💡 Planned
+**Quick Example:**
+```bash
+# Search for products
+npm run search "MacBook Pro M3 price"
 
-*Add your next automation idea here!*
+# Scrape a specific product page
+npm run scrape "https://store.com/product" -- --save
+
+# View price history
+npm run history "MacBook Pro"
+```
+
+### 📦 [Add Your Own Section]
+**Status:** 💡 Ready to Build
+
+The modular architecture makes it easy to add custom tracking sections for your specific needs!
 
 ## 🏗️ Architecture
 
@@ -69,58 +81,78 @@ Track wood pellet/granules prices across multiple retailers to find the best mon
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js 18+ (for frontend)
+- Docker & Docker Compose (for database)
+- Node.js 18+ (for scraper)
 - Firecrawl API key ([Get one here](https://firecrawl.dev))
-- n8n instance (optional, for automation)
-- Database (PostgreSQL/MongoDB) or Google Sheets
 
-### Installation
+### Setup in 3 Steps
 
+**1. Clone and configure:**
 ```bash
-# Clone the repository
 git clone https://github.com/Toms-Berzins/personal-automation-dashboard.git
 cd personal-automation-dashboard
 
-# Install dependencies
-npm install
-
-# Copy environment variables
+# Copy environment template
 cp .env.example .env
 
-# Add your API keys to .env
-# FIRECRAWL_API_KEY=your_key_here
-
-# Start development server
-npm run dev
+# Edit .env and add your Firecrawl API key
+nano .env  # or use your preferred editor
 ```
+
+**2. Start the database:**
+```bash
+# Start PostgreSQL with Docker
+docker-compose up -d postgres
+
+# Run database migrations
+docker exec -i automation-dashboard-db psql -U postgres -d automation_db < database/migrations/001_add_product_prices.sql
+```
+
+**3. Install scraper dependencies:**
+```bash
+cd tools/scraper
+npm install
+```
+
+### Your First Scrape
+
+```bash
+# Search for a product
+npm run search "wireless headphones"
+
+# Scrape a product page and save to database
+npm run scrape "https://example.com/product" -- --save
+
+# View price history
+npm run history "headphones"
+```
+
+See [QUICKSTART.md](./QUICKSTART.md) for detailed setup instructions.
 
 ## 📁 Project Structure
 
 ```
 personal-automation-dashboard/
-├── frontend/              # Dashboard UI
-│   ├── src/
-│   │   ├── components/    # Reusable components
-│   │   ├── sections/      # Section-specific components
-│   │   ├── utils/         # Helper functions
-│   │   └── App.jsx        # Main app
-│   └── package.json
-├── backend/               # API layer (optional)
-│   ├── routes/
-│   ├── controllers/
-│   └── server.js
-├── automation/            # n8n workflows
-│   ├── workflows/
-│   └── README.md
-├── sections/              # Individual tracking sections
-│   ├── granules-tracker/
-│   │   ├── README.md
-│   │   ├── scrapers/      # Firecrawl configurations
-│   │   ├── data/          # Sample data
-│   │   └── schema.json    # Data structure
-│   └── [future-sections]/
-├── docs/                  # Documentation
-├── .env.example
+├── tools/
+│   └── scraper/           # 🔍 On-demand web scraper
+│       ├── scraper.js     # Main CLI tool
+│       ├── package.json   # Dependencies
+│       └── README.md      # Usage guide
+├── database/              # 💾 Database setup
+│   ├── init.sql           # Initial schema
+│   └── migrations/        # Schema migrations
+│       └── 001_add_product_prices.sql
+├── docker-compose.yml     # 🐳 PostgreSQL + services
+├── docker-compose.dev.yml # Development overrides
+├── frontend/              # 📊 Dashboard UI (planned)
+│   └── src/
+├── backend/               # 🔌 API layer (optional)
+│   └── routes/
+├── docs/                  # 📚 Documentation
+│   ├── QUICKSTART.md
+│   ├── PROGRESS_SUMMARY.md
+│   └── IMPLEMENTATION_DECISIONS.md
+├── .env.example           # Environment template
 └── README.md
 ```
 

@@ -1,0 +1,243 @@
+.price-history {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.history-header h2 {
+  font-size: 32px;
+  font-weight: 700;
+}
+
+.refresh-btn {
+  padding: 12px 24px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.refresh-btn:hover {
+  background: var(--border);
+}
+
+/* Search Section */
+.search-section {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.search-input {
+  flex: 1;
+  padding: 16px 20px;
+  background: var(--bg-input);
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  color: var(--text-primary);
+  font-size: 16px;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.search-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.search-input::placeholder {
+  color: var(--text-secondary);
+}
+
+.search-btn {
+  padding: 16px 32px;
+  background: var(--primary);
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.search-btn:hover:not(:disabled) {
+  background: var(--primary-dark);
+}
+
+.search-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.back-btn {
+  padding: 16px 24px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text-primary);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.back-btn:hover {
+  background: var(--border);
+}
+
+/* History Content */
+.history-content {
+  min-height: 400px;
+}
+
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  color: var(--text-secondary);
+}
+
+.spinner-large {
+  width: 60px;
+  height: 60px;
+  border: 4px solid var(--border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 24px;
+}
+
+/* History Table */
+.history-table-container {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.history-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.history-table thead {
+  background: var(--bg-input);
+}
+
+.history-table th {
+  padding: 16px 20px;
+  text-align: left;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.history-table tbody tr {
+  border-top: 1px solid var(--border);
+  transition: background 0.2s;
+}
+
+.history-table tbody tr:hover {
+  background: rgba(59, 130, 246, 0.05);
+}
+
+.history-table td {
+  padding: 20px;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.date-cell {
+  color: var(--text-secondary);
+  white-space: nowrap;
+  font-size: 13px;
+}
+
+.product-cell {
+  font-weight: 600;
+  max-width: 300px;
+}
+
+.brand-cell {
+  color: var(--text-secondary);
+}
+
+.price-cell {
+  font-weight: 700;
+}
+
+.price-value {
+  color: var(--success);
+  font-size: 16px;
+}
+
+.stock-cell {
+  text-align: center;
+}
+
+.url-cell {
+  text-align: right;
+}
+
+.url-link {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.url-link:hover {
+  text-decoration: underline;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 80px 20px;
+  color: var(--text-secondary);
+}
+
+.empty-icon {
+  font-size: 80px;
+  margin-bottom: 24px;
+}
+
+.empty-state h3 {
+  font-size: 24px;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+}
+
+.empty-state p {
+  font-size: 16px;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .history-table-container {
+    overflow-x: auto;
+  }
+
+  .history-table {
+    min-width: 800px;
+  }
+}
