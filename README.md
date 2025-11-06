@@ -11,6 +11,34 @@ A modular, extensible dashboard system that combines web scraping, data automati
 
 ## 🎯 Features
 
+### 🤖 AI-Powered Analytics
+**Status:** ✅ Ready to Use
+
+Enhance your data analysis with OpenAI integration for intelligent insights and natural language queries.
+
+**Features:**
+- 💬 Natural language queries - Ask questions in plain English
+- 📊 Automated insights - AI discovers trends and opportunities
+- 🎯 Smart recommendations - AI-powered buying advice
+- 📝 Data summarization - Convert complex analytics to easy summaries
+- 🗣️ Conversational interface - Chat with your data
+
+[View AI Setup Guide →](./OPENAI_SETUP_GUIDE.md) | [API Reference →](./API_ENDPOINTS.md)
+
+**Quick Example:**
+```bash
+# Ask questions in plain English
+curl -X POST http://localhost:8000/api/ai/query \
+  -d '{"query": "Which retailer is cheapest right now?"}'
+
+# Get AI-generated insights
+curl http://localhost:8000/api/ai/insights
+
+# Get buying recommendation
+curl -X POST http://localhost:8000/api/ai/recommendation \
+  -d '{"productId": 1}'
+```
+
 ### 🔍 On-Demand Web Scraper
 **Status:** ✅ Ready to Use
 
@@ -84,6 +112,7 @@ The modular architecture makes it easy to add custom tracking sections for your 
 - Docker & Docker Compose (for database)
 - Node.js 18+ (for scraper)
 - Firecrawl API key ([Get one here](https://firecrawl.dev))
+- OpenAI API key (optional, for AI features - [Get one here](https://platform.openai.com/api-keys))
 
 ### Setup in 3 Steps
 
@@ -95,8 +124,8 @@ cd personal-automation-dashboard
 # Copy environment template
 cp .env.example .env
 
-# Edit .env and add your Firecrawl API key
-nano .env  # or use your preferred editor
+# Edit .env and add your API keys
+nano .env  # Add FIRECRAWL_API_KEY and OPENAI_API_KEY
 ```
 
 **2. Start the database:**
@@ -190,11 +219,12 @@ personal-automation-dashboard/
 
 ## 🛠️ Tech Stack
 
+- **AI/ML:** OpenAI GPT-4o-mini (analytics & insights)
 - **Scraping:** Firecrawl
 - **Automation:** n8n / Zapier / Make
 - **Frontend:** React + Vite + Chart.js
-- **Backend:** Node.js + Express (optional)
-- **Database:** PostgreSQL / Google Sheets
+- **Backend:** Node.js + Express
+- **Database:** PostgreSQL
 - **Deployment:** Vercel / Netlify / Docker
 
 ## 📊 Dashboard Features

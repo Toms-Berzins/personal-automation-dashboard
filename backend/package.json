@@ -6,7 +6,8 @@
   "main": "src/server.js",
   "scripts": {
     "dev": "node --watch src/server.js",
-    "start": "node src/server.js"
+    "start": "node src/server.js",
+    "migrate": "node src/database/migrate.js"
   },
   "dependencies": {
     "@mendable/firecrawl-js": "^1.4.0",
@@ -14,7 +15,9 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
-    "pg": "^8.11.0"
+    "openai": "^6.7.0",
+    "pg": "^8.11.0",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",

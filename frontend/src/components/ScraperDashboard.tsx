@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { scraperApi } from '../services/api';
-import type { ScraperMode, SearchResult, ScrapeResult } from '../types';
+import type { ScraperMode, SearchResult, ScrapeResult, SearchAndScrapeResult, PriceComparisonResult } from '../types';
+import PriceComparisonResults from './PriceComparisonResults';
 import './ScraperDashboard.css';
 
 function ScraperDashboard() {
@@ -10,8 +11,17 @@ function ScraperDashboard() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Auto mode settings
+  const [maxSites, setMaxSites] = useState(3);
+  const [maxPages, setMaxPages] = useState(1);
+
+  // Compare mode settings
+  const [priceChangeThreshold, setPriceChangeThreshold] = useState(1);
+
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [scrapeResult, setScrapeResult] = useState<ScrapeResult | null>(null);
+  const [autoScrapeResult, setAutoScrapeResult] = useState<SearchAndScrapeResult | null>(null);
+  const [comparisonResult, setComparisonResult] = useState<PriceComparisonResult | null>(null);
 
   const handleGo = async () => {
     if (!input.trim()) {
@@ -23,6 +33,8 @@ function ScraperDashboard() {
     setError(null);
     setSearchResults([]);
     setScrapeResult(null);
+    setAutoScrapeResult(null);
+    setComparisonResult(null);
 
     try {
       if (mode === 'search') {
@@ -31,12 +43,33 @@ function ScraperDashboard() {
           limit: 5
         });
         setSearchResults(results);
-      } else {
+      } else if (mode === 'scrape') {
         const result = await scraperApi.scrape({
           url: input,
           saveToDb
         });
         setScrapeResult(result);
+      } else if (mode === 'auto') {
+        // Auto search + scrape mode
+        const result = await scraperApi.searchAndScrape({
+          query: input,
+          limit: 5,
+          saveToDb,
+          maxSites,
+          maxPages
+        });
+        setAutoScrapeResult(result);
+      } else if (mode === 'compare') {
+        // Compare mode - search, scrape and compare with history
+        const result = await scraperApi.searchScrapeCompare({
+          query: input,
+          limit: 5,
+          saveToDb,
+          maxSites,
+          maxPages,
+          priceChangeThreshold
+        });
+        setComparisonResult(result);
       }
     } catch (err: any) {
       setError(err.response?.data?.error || err.message || 'An error occurred');
@@ -82,6 +115,18 @@ function ScraperDashboard() {
           🔍 Search
         </button>
         <button
+          className={`mode-btn ${mode === 'auto' ? 'active' : ''}`}
+          onClick={() => setMode('auto')}
+        >
+          🤖 Auto Search+Scrape
+        </button>
+        <button
+          className={`mode-btn ${mode === 'compare' ? 'active' : ''}`}
+          onClick={() => setMode('compare')}
+        >
+          📊 Compare Prices
+        </button>
+        <button
           className={`mode-btn ${mode === 'scrape' ? 'active' : ''}`}
           onClick={() => setMode('scrape')}
         >
@@ -97,7 +142,11 @@ function ScraperDashboard() {
             className="input-field"
             placeholder={
               mode === 'search'
-                ? 'Search for products... (e.g., "wireless headphones")'
+                ? 'Search for products... (e.g., "skaidu granulas")'
+                : mode === 'auto'
+                ? 'Enter search query for auto scraping... (e.g., "skaidu granulas")'
+                : mode === 'compare'
+                ? 'Search and compare with historical prices... (e.g., "skaidu granulas")'
                 : 'Enter product URL... (e.g., "https://store.com/product")'
             }
             value={input}
@@ -114,7 +163,7 @@ function ScraperDashboard() {
             {loading ? (
               <>
                 <span className="spinner"></span>
-                Loading...
+                {mode === 'auto' || mode === 'compare' ? 'Scraping...' : 'Loading...'}
               </>
             ) : (
               <>
@@ -125,7 +174,98 @@ function ScraperDashboard() {
           </button>
         </div>
 
-        {mode === 'scrape' && (
+        {/* Auto Mode Settings */}
+        {mode === 'auto' && (
+          <div className="auto-settings">
+            <div className="setting-row">
+              <label className="setting-label">
+                <span className="setting-title">Max Sites:</span>
+                <input
+                  type="number"
+                  min="1"
+                  max="10"
+                  value={maxSites}
+                  onChange={(e) => setMaxSites(Math.max(1, Math.min(10, parseInt(e.target.value) || 1)))}
+                  disabled={loading}
+                  className="number-input"
+                />
+                <span className="setting-hint">Scrape up to {maxSites} sites</span>
+              </label>
+            </div>
+
+            <div className="setting-row">
+              <label className="setting-label">
+                <span className="setting-title">Pages per site:</span>
+                <input
+                  type="number"
+                  min="1"
+                  max="30"
+                  value={maxPages}
+                  onChange={(e) => setMaxPages(Math.max(1, Math.min(30, parseInt(e.target.value) || 1)))}
+                  disabled={loading}
+                  className="number-input"
+                />
+                <span className="setting-hint">Scrape up to {maxPages} page(s) from each site</span>
+              </label>
+            </div>
+          </div>
+        )}
+
+        {/* Compare Mode Settings */}
+        {mode === 'compare' && (
+          <div className="auto-settings">
+            <div className="setting-row">
+              <label className="setting-label">
+                <span className="setting-title">Max Sites:</span>
+                <input
+                  type="number"
+                  min="1"
+                  max="10"
+                  value={maxSites}
+                  onChange={(e) => setMaxSites(Math.max(1, Math.min(10, parseInt(e.target.value) || 1)))}
+                  disabled={loading}
+                  className="number-input"
+                />
+                <span className="setting-hint">Scrape up to {maxSites} sites</span>
+              </label>
+            </div>
+
+            <div className="setting-row">
+              <label className="setting-label">
+                <span className="setting-title">Pages per site:</span>
+                <input
+                  type="number"
+                  min="1"
+                  max="30"
+                  value={maxPages}
+                  onChange={(e) => setMaxPages(Math.max(1, Math.min(30, parseInt(e.target.value) || 1)))}
+                  disabled={loading}
+                  className="number-input"
+                />
+                <span className="setting-hint">Scrape up to {maxPages} page(s) from each site</span>
+              </label>
+            </div>
+
+            <div className="setting-row">
+              <label className="setting-label">
+                <span className="setting-title">Price change threshold:</span>
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="0.1"
+                  value={priceChangeThreshold}
+                  onChange={(e) => setPriceChangeThreshold(Math.max(0, Math.min(100, parseFloat(e.target.value) || 1)))}
+                  disabled={loading}
+                  className="number-input"
+                />
+                <span className="setting-hint">Ignore price changes below {priceChangeThreshold}%</span>
+              </label>
+            </div>
+          </div>
+        )}
+
+        {(mode === 'scrape' || mode === 'auto' || mode === 'compare') && (
           <label className="checkbox-label">
             <input
               type="checkbox"
@@ -133,7 +273,7 @@ function ScraperDashboard() {
               onChange={(e) => setSaveToDb(e.target.checked)}
               disabled={loading}
             />
-            <span>Save to database for price tracking</span>
+            <span>💾 Save to database for price tracking</span>
           </label>
         )}
       </div>
@@ -146,7 +286,7 @@ function ScraperDashboard() {
         </div>
       )}
 
-      {/* Search Results */}
+      {/* Search Results (Search Mode) */}
       {mode === 'search' && searchResults.length > 0 && (
         <div className="results-section">
           <h2 className="results-title">Search Results</h2>
@@ -172,7 +312,78 @@ function ScraperDashboard() {
         </div>
       )}
 
-      {/* Scrape Result */}
+      {/* Auto Search+Scrape Results */}
+      {mode === 'auto' && autoScrapeResult && (
+        <div className="results-section">
+          <div className="result-header">
+            <h2 className="results-title">
+              {autoScrapeResult.success ? '✅ Auto Scraping Complete' : '❌ Scraping Failed'}
+            </h2>
+            {autoScrapeResult.success && (
+              <div className="result-stats">
+                <span className="stat-badge">
+                  🔍 {autoScrapeResult.searchEngine} found {autoScrapeResult.searchResultsCount} results
+                </span>
+                <span className="stat-badge">
+                  📊 Scraped {autoScrapeResult.scrapedSitesCount}/{autoScrapeResult.scrapableSitesCount} sites
+                </span>
+                <span className="stat-badge">
+                  🏷️ Found {autoScrapeResult.totalProducts} products
+                </span>
+              </div>
+            )}
+          </div>
+
+          {autoScrapeResult.message && (
+            <div className="info-box">
+              {autoScrapeResult.message}
+            </div>
+          )}
+
+          {autoScrapeResult.scrapedData.map((siteData, siteIndex) => (
+            <div key={siteIndex} className="site-scrape-result">
+              <div className="site-header">
+                <h3 className="site-title">{siteData.title || 'Untitled Site'}</h3>
+                <div className="site-meta">
+                  <span className="meta-item">📄 {siteData.count} products</span>
+                  {siteData.pagesScraped && (
+                    <span className="meta-item">📑 {siteData.pagesScraped} pages</span>
+                  )}
+                  {siteData.saved && (
+                    <span className="saved-badge">💾 Saved {siteData.savedCount}</span>
+                  )}
+                </div>
+              </div>
+              <p className="site-url">{siteData.url}</p>
+
+              <div className="products-grid">
+                {siteData.products.slice(0, 10).map((product, prodIndex) => (
+                  <div key={prodIndex} className="product-card-small">
+                    <div className="product-name">{product.product_name}</div>
+                    <div className="product-price">
+                      {product.price} {product.currency || 'EUR'}
+                    </div>
+                    {product.brand && (
+                      <div className="product-brand">{product.brand}</div>
+                    )}
+                    <div className={`stock-badge-small ${product.in_stock ? 'in-stock' : 'out-of-stock'}`}>
+                      {product.in_stock ? '✓ In Stock' : '✗ Out of Stock'}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {siteData.count > 10 && (
+                <div className="show-more">
+                  + {siteData.count - 10} more products
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Scrape Result (Scrape Mode) */}
       {mode === 'scrape' && scrapeResult && (
         <div className="results-section">
           <div className="result-header">
@@ -255,20 +466,33 @@ function ScraperDashboard() {
         </div>
       )}
 
+      {/* Price Comparison Results */}
+      {mode === 'compare' && comparisonResult && (
+        <PriceComparisonResults result={comparisonResult} />
+      )}
+
       {/* Empty State */}
-      {!loading && !error && searchResults.length === 0 && !scrapeResult && (
+      {!loading && !error && searchResults.length === 0 && !scrapeResult && !autoScrapeResult && !comparisonResult && (
         <div className="empty-state">
           <div className="empty-icon">
-            {mode === 'search' ? '🔍' : '📥'}
+            {mode === 'search' ? '🔍' : mode === 'auto' ? '🤖' : mode === 'compare' ? '📊' : '📥'}
           </div>
           <h3>
             {mode === 'search'
               ? 'Search for products across the web'
+              : mode === 'auto'
+              ? 'Auto Search & Scrape - All-in-One'
+              : mode === 'compare'
+              ? 'Compare Prices with History'
               : 'Scrape product data from any URL'}
           </h3>
           <p>
             {mode === 'search'
               ? 'Enter a search query and click GO to find products'
+              : mode === 'auto'
+              ? 'Enter a search query (e.g., "skaidu granulas") to automatically find, scrape, and save product data from multiple sites'
+              : mode === 'compare'
+              ? 'Enter a search query to find products and compare current prices with historical data. Identify new products, price increases, and price drops!'
               : 'Enter a product URL and click GO to extract price and details'}
           </p>
         </div>
