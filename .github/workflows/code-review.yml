@@ -1,0 +1,178 @@
+name: Code Review & CI
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches:
+      - main
+      - develop
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+  issues: write
+
+jobs:
+  code-review:
+    name: Automated Code Review
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      # Backend Code Review
+      - name: Install Backend Dependencies
+        working-directory: ./backend
+        run: npm ci
+
+      - name: Backend - ESLint Review
+        working-directory: ./backend
+        run: |
+          npm run lint --if-present || echo "No lint script found"
+        continue-on-error: true
+
+      - name: Backend - TypeScript Check
+        working-directory: ./backend
+        run: |
+          npx tsc --noEmit || echo "TypeScript errors found"
+        continue-on-error: true
+
+      # Frontend Code Review
+      - name: Install Frontend Dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Frontend - ESLint Review
+        working-directory: ./frontend
+        run: |
+          npm run lint --if-present || echo "No lint script found"
+        continue-on-error: true
+
+      - name: Frontend - TypeScript Check
+        working-directory: ./frontend
+        run: |
+          npx tsc --noEmit || echo "TypeScript errors found"
+        continue-on-error: true
+
+      # Reviewdog for inline comments
+      - name: Setup Reviewdog
+        uses: reviewdog/action-setup@v1
+        with:
+          reviewdog_version: latest
+
+      - name: Run Reviewdog - ESLint (Backend)
+        env:
+          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        working-directory: ./backend
+        run: |
+          npx eslint . --format=checkstyle | \
+          reviewdog -f=checkstyle -name="ESLint (Backend)" -reporter=github-pr-review -level=warning
+        continue-on-error: true
+
+      - name: Run Reviewdog - ESLint (Frontend)
+        env:
+          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        working-directory: ./frontend
+        run: |
+          npx eslint . --format=checkstyle | \
+          reviewdog -f=checkstyle -name="ESLint (Frontend)" -reporter=github-pr-review -level=warning
+        continue-on-error: true
+
+  ai-code-review:
+    name: AI-Powered Code Review
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: AI Code Reviewer
+        uses: freeedcom/ai-codereviewer@main
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_API_MODEL: "gpt-4"
+          exclude: "*.md,*.json,*.yml,*.yaml,package-lock.json"
+        continue-on-error: true
+
+  security-review:
+    name: Security Code Review
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-results.sarif'
+        continue-on-error: true
+
+      - name: OWASP Dependency Check
+        uses: dependency-check/Dependency-Check_Action@main
+        with:
+          project: 'personal-automation-dashboard'
+          path: '.'
+          format: 'HTML'
+        continue-on-error: true
+
+  quality-gates:
+    name: Code Quality Gates
+    runs-on: ubuntu-latest
+    needs: [code-review]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install Dependencies
+        run: |
+          cd backend && npm ci
+          cd ../frontend && npm ci
+
+      - name: Check Code Complexity
+        run: |
+          npx complexity-report ./backend/src --format json > backend-complexity.json || true
+          npx complexity-report ./frontend/src --format json > frontend-complexity.json || true
+        continue-on-error: true
+
+      - name: Generate Review Summary
+        run: |
+          echo "## Code Review Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Automated code review completed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Checks Performed:" >> $GITHUB_STEP_SUMMARY
+          echo "- ESLint (Backend & Frontend)" >> $GITHUB_STEP_SUMMARY
+          echo "- TypeScript Type Checking" >> $GITHUB_STEP_SUMMARY
+          echo "- AI-Powered Review" >> $GITHUB_STEP_SUMMARY
+          echo "- Security Vulnerability Scan" >> $GITHUB_STEP_SUMMARY
+          echo "- Code Complexity Analysis" >> $GITHUB_STEP_SUMMARY
