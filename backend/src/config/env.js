@@ -2,6 +2,7 @@
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import { validateEnv } from './validateEnv.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -17,4 +18,8 @@ if (result.error) {
   console.log('✅ Environment variables loaded from:', envPath);
 }
 
-export default process.env;
+// Validate environment variables with Zod
+// This will exit with error if critical variables are missing
+const validatedEnv = validateEnv();
+
+export default validatedEnv;
