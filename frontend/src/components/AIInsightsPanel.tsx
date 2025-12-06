@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { aiApi } from '../services/api';
 import type { AIInsightsResponse } from '../types';
 import './AIInsightsPanel.css';
