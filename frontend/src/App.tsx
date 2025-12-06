@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import Sidebar from './components/Sidebar';
 import ScraperDashboard from './components/ScraperDashboard';
 import PriceHistory from './components/PriceHistory';
