@@ -13,11 +13,12 @@ function UsageTracker() {
   const [selectedPeriod, setSelectedPeriod] = useState<number>(12);
 
   // Helper function to format weight (kg to tons if >= 1000kg)
-  const formatWeight = (kg: number): string => {
-    if (kg >= 1000) {
-      return `${(kg / 1000).toFixed(2)} t`;
+  const formatWeight = (kg: number | string): string => {
+    const value = typeof kg === 'string' ? parseFloat(kg) : kg;
+    if (value >= 1000) {
+      return `${(value / 1000).toFixed(2)} t`;
     }
-    return `${kg.toFixed(0)} kg`;
+    return `${value.toFixed(0)} kg`;
   };
 
   // Helper function to format currency (EUR to K if >= 1000)
@@ -110,7 +111,7 @@ function UsageTracker() {
             <div className="stat-icon">📈</div>
             <div className="stat-content">
               <div className="stat-label">Monthly Average</div>
-              <div className="stat-value">{stats.avg_monthly_kg.toFixed(0)} kg</div>
+              <div className="stat-value">{Number(stats.avg_monthly_kg).toFixed(0)} kg</div>
               <div className="stat-meta">Per month</div>
             </div>
           </div>
@@ -119,7 +120,7 @@ function UsageTracker() {
             <div className="stat-icon">🔥</div>
             <div className="stat-content">
               <div className="stat-label">Peak Month</div>
-              <div className="stat-value">{stats.peak_month_kg.toFixed(0)} kg</div>
+              <div className="stat-value">{Number(stats.peak_month_kg).toFixed(0)} kg</div>
               <div className="stat-meta">Highest usage</div>
             </div>
           </div>
@@ -128,7 +129,7 @@ function UsageTracker() {
             <div className="stat-icon">📅</div>
             <div className="stat-content">
               <div className="stat-label">Last Month</div>
-              <div className="stat-value">{stats.last_month_kg.toFixed(0)} kg</div>
+              <div className="stat-value">{Number(stats.last_month_kg).toFixed(0)} kg</div>
               <div className="stat-meta">{new Date(stats.last_update).toLocaleDateString()}</div>
             </div>
           </div>
@@ -174,8 +175,8 @@ function UsageTracker() {
                   .reverse()
                   .map(item => ({
                     month: new Date(item.month).toLocaleDateString('en-US', { month: 'short', year: '2-digit' }),
-                    consumption: parseFloat(item.kg_consumed.toFixed(0)),
-                    cost: item.estimated_cost ? parseFloat(item.estimated_cost) : null,
+                    consumption: Math.round(Number(item.kg_consumed)),
+                    cost: item.estimated_cost ? parseFloat(String(item.estimated_cost)) : null,
                     dataQuality: item.avg_price_type || 'unknown'
                   }))}
                 margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
@@ -425,9 +426,9 @@ function UsageTracker() {
                 }
 
                 // Price variance indicator
-                const hasVariance = item.price_variance && item.price_variance > 0;
+                const hasVariance = item.price_variance && Number(item.price_variance) > 0;
                 const variancePercent = hasVariance && item.avg_price
-                  ? (((item.price_variance ?? 0) / item.avg_price) * 100).toFixed(0)
+                  ? ((Number(item.price_variance ?? 0) / Number(item.avg_price)) * 100).toFixed(0)
                   : null;
 
                 return (
@@ -439,9 +440,9 @@ function UsageTracker() {
                     <span className="price-cell">
                       {item.avg_price ? (
                         <>
-                          €{item.avg_price.toFixed(2)}/kg
+                          €{Number(item.avg_price).toFixed(2)}/kg
                           {hasVariance && (
-                            <span className="price-variance" title={`Price range: €${item.min_price?.toFixed(2)} - €${item.max_price?.toFixed(2)} per kg`}>
+                            <span className="price-variance" title={`Price range: €${item.min_price ? Number(item.min_price).toFixed(2) : 'N/A'} - €${item.max_price ? Number(item.max_price).toFixed(2) : 'N/A'} per kg`}>
                               ±{variancePercent}%
                             </span>
                           )}
@@ -481,19 +482,19 @@ function UsageTracker() {
                 <div className="year-stats">
                   <div className="year-stat">
                     <span className="year-label">Total:</span>
-                    <span className="year-value">{formatWeight(year.total_kg)}</span>
+                    <span className="year-value">{formatWeight(Number(year.total_kg))}</span>
                   </div>
                   <div className="year-stat">
                     <span className="year-label">Monthly Avg:</span>
-                    <span className="year-value">{year.avg_monthly_kg.toFixed(0)} kg</span>
+                    <span className="year-value">{Number(year.avg_monthly_kg).toFixed(0)} kg</span>
                   </div>
                   <div className="year-stat">
                     <span className="year-label">Peak:</span>
-                    <span className="year-value">{year.peak_month_kg.toFixed(0)} kg</span>
+                    <span className="year-value">{Number(year.peak_month_kg).toFixed(0)} kg</span>
                   </div>
                   <div className="year-stat">
                     <span className="year-label">Lowest:</span>
-                    <span className="year-value">{year.lowest_month_kg.toFixed(0)} kg</span>
+                    <span className="year-value">{Number(year.lowest_month_kg).toFixed(0)} kg</span>
                   </div>
                 </div>
                 <div className="year-months">{year.months_count} months</div>
@@ -522,11 +523,11 @@ function UsageTracker() {
                 <div className="seasonal-stats">
                   <div className="seasonal-stat">
                     <span>Total:</span>
-                    <span className="stat-bold">{formatWeight(season.total_kg)}</span>
+                    <span className="stat-bold">{formatWeight(Number(season.total_kg))}</span>
                   </div>
                   <div className="seasonal-stat">
                     <span>Average:</span>
-                    <span className="stat-bold">{season.avg_kg.toFixed(0)} kg</span>
+                    <span className="stat-bold">{Number(season.avg_kg).toFixed(0)} kg</span>
                   </div>
                   <div className="seasonal-stat">
                     <span>Months:</span>
@@ -550,7 +551,7 @@ function UsageTracker() {
                 <div className="insight-content">
                   <h4>Consumption Pattern</h4>
                   <p>
-                    Your average monthly consumption is {stats.avg_monthly_kg.toFixed(0)} kg.
+                    Your average monthly consumption is {Number(stats.avg_monthly_kg).toFixed(0)} kg.
                     Peak usage typically occurs during winter months.
                   </p>
                 </div>

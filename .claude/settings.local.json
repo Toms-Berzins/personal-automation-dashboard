@@ -17,7 +17,10 @@
       "Bash(git add:*)",
       "Bash(git commit -m \"$\\(cat <<''EOF''\nMerge remote-tracking branch ''origin/main'' into main\n\nResolved conflicts in frontend files:\n- package.json: kept proper dependency separation\n- package-lock.json: regenerated\n- UsageTracker.tsx: kept nullish coalescing for null safety\n- main.tsx: kept explicit null check over non-null assertion\n- vite-env.d.ts: kept ImportMetaEnv interface for type safety\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
       "Bash(git commit:*)",
-      "Bash(node --version:*)"
+      "Bash(node --version:*)",
+      "mcp__kapture__list_tabs",
+      "mcp__kapture__screenshot",
+      "mcp__kapture__click"
     ],
     "deny": [],
     "ask": []
