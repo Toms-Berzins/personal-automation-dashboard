@@ -160,8 +160,8 @@ jobs:
 
       - name: Check Code Complexity
         run: |
-          npx complexity-report ./backend/src --format json > backend-complexity.json || true
-          npx complexity-report ./frontend/src --format json > frontend-complexity.json || true
+          echo "Code complexity analysis skipped - complexity-report package not available"
+          echo "Consider using ESLint complexity rules or alternative tools like plato/es6-plato"
         continue-on-error: true
 
       - name: Generate Review Summary
