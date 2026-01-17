@@ -5,10 +5,12 @@ import './styles/global.css';
 import './styles/buttons.css';
 
 const rootElement = document.getElementById('root');
-if (rootElement) {
-  ReactDOM.createRoot(rootElement).render(
-    <React.StrictMode>
-      <App />
-    </React.StrictMode>
-  );
+if (!rootElement) {
+  throw new Error('Root element not found');
 }
+
+ReactDOM.createRoot(rootElement).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);

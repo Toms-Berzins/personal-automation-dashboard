@@ -49,7 +49,13 @@ function UsageTracker() {
       setComparison(comparisonData);
     } catch (err: any) {
       console.error('Failed to fetch consumption data:', err);
-      setError(err.message || 'Failed to load consumption data');
+      // Better error handling for axios errors
+      const errorMessage = err?.response?.data?.error 
+        || err?.response?.data?.message
+        || err?.message 
+        || err?.toString()
+        || 'Failed to load consumption data. Please check that the backend server is running.';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -143,6 +149,18 @@ function UsageTracker() {
           <option value={36}>Last 36 Months</option>
         </select>
       </div>
+
+      {/* Show message if no data after loading */}
+      {!loading && !error && !stats && !trends && !comparison && (
+        <div className="error-state" style={{ marginTop: '2rem', textAlign: 'center', padding: '3rem' }}>
+          <span className="error-icon" style={{ fontSize: '3rem' }}>ℹ️</span>
+          <h3>No Data Available</h3>
+          <p>Unable to load consumption data. Please ensure the backend server is running and the database has consumption records.</p>
+          <button onClick={fetchData} className="retry-button">
+            Retry
+          </button>
+        </div>
+      )}
 
       {/* Consumption Chart (Monthly) */}
       {comparison && comparison.comparison.length > 0 && (
