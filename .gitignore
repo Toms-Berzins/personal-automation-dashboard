@@ -45,3 +45,10 @@ sections/*/data/*.json
 # Cache
 .cache/
 .parcel-cache/
+
+# Testing
+backend/coverage/
+frontend/coverage/
+test-results/
+playwright-report/
+playwright/.cache/

@@ -8,7 +8,13 @@
     "build": "cd frontend && npm run build",
     "start": "cd frontend && npm start",
     "scrape:granules": "node scripts/scrape-granules.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:debug": "playwright test --debug",
+    "test:e2e:smoke": "playwright test smoke.test.ts",
+    "test:e2e:report": "playwright show-report"
   },
   "keywords": [
     "dashboard",
@@ -24,5 +30,9 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/Toms-Berzins/personal-automation-dashboard.git"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.56.1",
+    "playwright": "^1.56.1"
   }
 }
