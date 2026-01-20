@@ -18,6 +18,8 @@ import './PriceHistory.css';
 
 type TimeRange = '7d' | '30d' | '90d' | 'all';
 type ChartType = 'line' | 'bar';
+type SortField = 'date' | 'product' | 'brand' | 'price' | 'stock';
+type SortDirection = 'asc' | 'desc';
 
 interface PriceDataPoint {
   date: string;
@@ -47,6 +49,10 @@ function PriceHistory() {
   const [timeRange, setTimeRange] = useState<TimeRange>('30d');
   const [chartType, setChartType] = useState<ChartType>('line');
   const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
+
+  // Table sorting
+  const [sortField, setSortField] = useState<SortField>('date');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -169,15 +175,116 @@ function PriceHistory() {
     return Array.from(products).sort();
   };
 
+  // Handle table sorting
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      // Toggle direction if clicking the same field
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      // Default to descending for new field
+      setSortField(field);
+      setSortDirection(field === 'date' || field === 'price' ? 'desc' : 'asc');
+    }
+    setCurrentPage(1); // Reset to first page when sorting
+  };
 
+  // Sort data
+  const sortData = (data: PriceHistoryItem[]): PriceHistoryItem[] => {
+    return [...data].sort((a, b) => {
+      let comparison = 0;
+
+      switch (sortField) {
+        case 'date':
+          comparison = new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime();
+          break;
+        case 'product':
+          comparison = a.product_name.localeCompare(b.product_name);
+          break;
+        case 'brand':
+          comparison = (a.brand || '').localeCompare(b.brand || '');
+          break;
+        case 'price':
+          comparison = a.price - b.price;
+          break;
+        case 'stock':
+          comparison = (a.in_stock === b.in_stock) ? 0 : a.in_stock ? -1 : 1;
+          break;
+      }
+
+      return sortDirection === 'asc' ? comparison : -comparison;
+    });
+  };
+
+  // Export to CSV
+  const exportToCSV = () => {
+    if (filteredDisplayData.length === 0) return;
+
+    const headers = ['Date', 'Product', 'Brand', 'Price', 'Currency', 'Stock Status', 'URL'];
+    const rows = filteredDisplayData.map(item => [
+      formatDate(item.timestamp),
+      item.product_name,
+      item.brand || '—',
+      item.price.toString(),
+      item.currency,
+      item.in_stock ? 'In Stock' : 'Out of Stock',
+      item.url
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+    ].join('\n');
+
+    downloadFile(csvContent, 'price-history.csv', 'text/csv');
+  };
+
+  // Export to Excel (CSV with .xlsx extension for compatibility)
+  const exportToExcel = () => {
+    if (filteredDisplayData.length === 0) return;
+
+    const headers = ['Date', 'Product', 'Brand', 'Price', 'Currency', 'Stock Status', 'URL'];
+    const rows = filteredDisplayData.map(item => [
+      formatDate(item.timestamp),
+      item.product_name,
+      item.brand || '—',
+      item.price.toString(),
+      item.currency,
+      item.in_stock ? 'In Stock' : 'Out of Stock',
+      item.url
+    ]);
+
+    // Excel-compatible CSV format (tab-separated for better Excel compatibility)
+    const csvContent = [
+      headers.join('\t'),
+      ...rows.map(row => row.map(cell => String(cell)).join('\t'))
+    ].join('\n');
+
+    downloadFile(csvContent, 'price-history.xls', 'application/vnd.ms-excel');
+  };
+
+  // Download file helper
+  const downloadFile = (content: string, filename: string, mimeType: string) => {
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
 
   const displayData = showLatest ? latestPrices : history;
   const uniqueProducts = getUniqueProducts(displayData);
 
   // Filter data by selected product if applicable
-  const filteredDisplayData = selectedProduct
+  const filteredData = selectedProduct
     ? displayData.filter(item => item.product_name === selectedProduct)
     : displayData;
+
+  // Sort the filtered data
+  const filteredDisplayData = sortData(filteredData);
 
   // Pagination calculations
   const totalPages = Math.ceil(filteredDisplayData.length / itemsPerPage);
@@ -462,15 +569,78 @@ function PriceHistory() {
           <div className="history-table-container">
             <div className="table-header">
               <h3>Price Records ({displayData.length})</h3>
+              <div className="export-buttons">
+                <button
+                  className="export-btn"
+                  onClick={exportToCSV}
+                  disabled={filteredDisplayData.length === 0}
+                  title="Export to CSV"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/>
+                    <line x1="12" y1="15" x2="12" y2="3"/>
+                  </svg>
+                  CSV
+                </button>
+                <button
+                  className="export-btn"
+                  onClick={exportToExcel}
+                  disabled={filteredDisplayData.length === 0}
+                  title="Export to Excel"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/>
+                    <line x1="12" y1="15" x2="12" y2="3"/>
+                  </svg>
+                  Excel
+                </button>
+              </div>
             </div>
             <table className="history-table">
               <thead>
                 <tr>
-                  <th>Date</th>
-                  <th>Product</th>
-                  <th>Brand</th>
-                  <th>Price</th>
-                  <th>Stock</th>
+                  <th className="sortable" onClick={() => handleSort('date')}>
+                    Date
+                    {sortField === 'date' && (
+                      <span className="sort-indicator">
+                        {sortDirection === 'asc' ? ' ↑' : ' ↓'}
+                      </span>
+                    )}
+                  </th>
+                  <th className="sortable" onClick={() => handleSort('product')}>
+                    Product
+                    {sortField === 'product' && (
+                      <span className="sort-indicator">
+                        {sortDirection === 'asc' ? ' ↑' : ' ↓'}
+                      </span>
+                    )}
+                  </th>
+                  <th className="sortable" onClick={() => handleSort('brand')}>
+                    Brand
+                    {sortField === 'brand' && (
+                      <span className="sort-indicator">
+                        {sortDirection === 'asc' ? ' ↑' : ' ↓'}
+                      </span>
+                    )}
+                  </th>
+                  <th className="sortable" onClick={() => handleSort('price')}>
+                    Price
+                    {sortField === 'price' && (
+                      <span className="sort-indicator">
+                        {sortDirection === 'asc' ? ' ↑' : ' ↓'}
+                      </span>
+                    )}
+                  </th>
+                  <th className="sortable" onClick={() => handleSort('stock')}>
+                    Stock
+                    {sortField === 'stock' && (
+                      <span className="sort-indicator">
+                        {sortDirection === 'asc' ? ' ↑' : ' ↓'}
+                      </span>
+                    )}
+                  </th>
                   <th>URL</th>
                 </tr>
               </thead>
