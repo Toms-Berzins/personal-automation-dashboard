@@ -3,6 +3,7 @@ import {
   searchProducts,
   scrapeUrl,
   searchAndScrape,
+  searchAndScrapeStream,
   searchScrapeCompare,
   getPriceHistory,
   getLatestPrices,
@@ -19,6 +20,9 @@ router.post('/scrape', scrapeUrl);
 
 // Smart Search & Scrape - One-click solution
 router.post('/search-and-scrape', searchAndScrape);
+
+// Smart Search & Scrape with SSE streaming progress
+router.post('/search-and-scrape/stream', searchAndScrapeStream);
 
 // Smart Search, Scrape & Compare - WITH price comparison
 router.post('/search-scrape-compare', searchScrapeCompare);

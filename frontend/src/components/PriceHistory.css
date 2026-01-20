@@ -178,6 +178,38 @@
   text-align: center;
 }
 
+.stock-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.stock-badge.in-stock {
+  background: rgba(16, 185, 129, 0.15);
+}
+
+.stock-badge.out-of-stock {
+  background: rgba(239, 68, 68, 0.15);
+}
+
+.stock-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.stock-badge.in-stock .stock-dot {
+  background: var(--success);
+}
+
+.stock-badge.out-of-stock .stock-dot {
+  background: var(--danger);
+}
+
 .url-cell {
   text-align: right;
 }
@@ -383,6 +415,27 @@
   color: var(--error);
 }
 
+/* Error Box */
+.error-box {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid var(--danger);
+  border-radius: 12px;
+  padding: 16px 20px;
+  color: var(--danger);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.error-indicator {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--danger);
+  flex-shrink: 0;
+}
+
 /* Empty State */
 .empty-state {
   text-align: center;
@@ -390,9 +443,24 @@
   color: var(--text-secondary);
 }
 
-.empty-icon {
-  font-size: 80px;
-  margin-bottom: 24px;
+.empty-indicator {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--bg-card);
+  border: 2px solid var(--border);
+  margin: 0 auto 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.empty-indicator::after {
+  content: '';
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--border);
 }
 
 .empty-state h3 {

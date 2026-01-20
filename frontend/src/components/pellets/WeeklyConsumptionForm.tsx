@@ -131,7 +131,8 @@ const WeeklyConsumptionForm: React.FC<WeeklyConsumptionFormProps> = ({
 
       {error && (
         <div className="alert alert-error">
-          <span>⚠️ {error}</span>
+          <span className="alert-indicator"></span>
+          <span>{error}</span>
         </div>
       )}
 
@@ -223,7 +224,7 @@ const WeeklyConsumptionForm: React.FC<WeeklyConsumptionFormProps> = ({
             <div className="form-group">
               <label htmlFor="temperature_avg">
                 Average Temperature (°C)
-                <span className="info-icon" title="Helps analyze consumption patterns">ℹ️</span>
+                <span className="info-icon" title="Helps analyze consumption patterns"></span>
               </label>
               <input
                 type="number"
@@ -239,7 +240,7 @@ const WeeklyConsumptionForm: React.FC<WeeklyConsumptionFormProps> = ({
             <div className="form-group">
               <label htmlFor="heating_hours">
                 Heating Hours
-                <span className="info-icon" title="Total hours heating system was active">ℹ️</span>
+                <span className="info-icon" title="Total hours heating system was active"></span>
               </label>
               <input
                 type="number"

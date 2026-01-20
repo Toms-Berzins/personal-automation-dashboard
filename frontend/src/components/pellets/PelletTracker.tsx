@@ -93,7 +93,7 @@ const PelletTracker: React.FC = () => {
     return (
       <div className="pellet-tracker error-state">
         <div className="error-content">
-          <span className="error-icon">⚠️</span>
+          <span className="error-icon"></span>
           <h3>Failed to Load Data</h3>
           <p>{error}</p>
           <button className="btn btn-primary" onClick={loadDashboardData}>
@@ -109,14 +109,14 @@ const PelletTracker: React.FC = () => {
       {/* Success/Error Messages */}
       {successMessage && (
         <div className="toast toast-success">
-          <span className="toast-icon">✓</span>
+          <span className="toast-icon toast-icon--success"></span>
           <span className="toast-message">{successMessage}</span>
         </div>
       )}
 
       {error && (
         <div className="toast toast-error">
-          <span className="toast-icon">⚠️</span>
+          <span className="toast-icon toast-icon--error"></span>
           <span className="toast-message">{error}</span>
         </div>
       )}
@@ -127,28 +127,28 @@ const PelletTracker: React.FC = () => {
           className={`tab ${currentView === 'overview' ? 'active' : ''}`}
           onClick={() => setCurrentView('overview')}
         >
-          <span className="tab-icon">📊</span>
+          <span className="tab-icon tab-icon--overview"></span>
           <span className="tab-label">Overview</span>
         </button>
         <button
           className={`tab ${currentView === 'add-stock' ? 'active' : ''}`}
           onClick={() => setCurrentView('add-stock')}
         >
-          <span className="tab-icon">➕</span>
+          <span className="tab-icon tab-icon--add"></span>
           <span className="tab-label">Add Stock</span>
         </button>
         <button
           className={`tab ${currentView === 'log-consumption' ? 'active' : ''}`}
           onClick={() => setCurrentView('log-consumption')}
         >
-          <span className="tab-icon">🔥</span>
+          <span className="tab-icon tab-icon--usage"></span>
           <span className="tab-label">Log Usage</span>
         </button>
         <button
           className={`tab ${currentView === 'history' ? 'active' : ''}`}
           onClick={() => setCurrentView('history')}
         >
-          <span className="tab-icon">📋</span>
+          <span className="tab-icon tab-icon--history"></span>
           <span className="tab-label">History</span>
         </button>
       </div>

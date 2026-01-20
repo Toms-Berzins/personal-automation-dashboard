@@ -91,15 +91,15 @@ function UsageTracker() {
   return (
     <div className="usage-tracker">
       <div className="usage-header">
-        <h2 className="usage-title">📈 Granules Usage Tracker</h2>
+        <h2 className="usage-title">Granules Usage Tracker</h2>
         <p className="usage-subtitle">Monitor your consumption patterns and optimize buying decisions</p>
       </div>
 
       {/* Statistics Cards */}
       {stats && (
         <div className="stats-grid">
-          <div className="stat-card">
-            <div className="stat-icon">📊</div>
+          <div className="stat-card stat-card--total">
+            <div className="stat-indicator"></div>
             <div className="stat-content">
               <div className="stat-label">Total Consumption</div>
               <div className="stat-value">{formatWeight(stats.total_kg)}</div>
@@ -107,8 +107,8 @@ function UsageTracker() {
             </div>
           </div>
 
-          <div className="stat-card">
-            <div className="stat-icon">📈</div>
+          <div className="stat-card stat-card--average">
+            <div className="stat-indicator"></div>
             <div className="stat-content">
               <div className="stat-label">Monthly Average</div>
               <div className="stat-value">{Number(stats.avg_monthly_kg).toFixed(0)} kg</div>
@@ -116,8 +116,8 @@ function UsageTracker() {
             </div>
           </div>
 
-          <div className="stat-card">
-            <div className="stat-icon">🔥</div>
+          <div className="stat-card stat-card--peak">
+            <div className="stat-indicator"></div>
             <div className="stat-content">
               <div className="stat-label">Peak Month</div>
               <div className="stat-value">{Number(stats.peak_month_kg).toFixed(0)} kg</div>
@@ -125,8 +125,8 @@ function UsageTracker() {
             </div>
           </div>
 
-          <div className="stat-card">
-            <div className="stat-icon">📅</div>
+          <div className="stat-card stat-card--recent">
+            <div className="stat-indicator"></div>
             <div className="stat-content">
               <div className="stat-label">Last Month</div>
               <div className="stat-value">{Number(stats.last_month_kg).toFixed(0)} kg</div>
@@ -166,7 +166,7 @@ function UsageTracker() {
       {/* Consumption Chart (Monthly) */}
       {comparison && comparison.comparison.length > 0 && (
         <div className="chart-section">
-          <h3 className="section-title">📊 Monthly Consumption</h3>
+          <h3 className="section-title">Monthly Consumption</h3>
           <div className="consumption-chart-recharts">
             <ResponsiveContainer width="100%" height={400}>
               <BarChart
@@ -257,7 +257,7 @@ function UsageTracker() {
       {/* Cost Analysis */}
       {comparison && (
         <div className="cost-analysis-section">
-          <h3 className="section-title">💰 Cost Analysis</h3>
+          <h3 className="section-title">Cost Analysis</h3>
 
           {/* Main Cost Summary */}
           <div className="cost-summary">
@@ -315,7 +315,7 @@ function UsageTracker() {
           {/* Cost Trend Analysis */}
           {comparison.summary.cost_trend && (
             <div className="cost-trend-box">
-              <h4 className="trend-title">📊 Cost Trend Analysis</h4>
+              <h4 className="trend-title">Cost Trend Analysis</h4>
               <div className="trend-content">
                 <div className="trend-comparison">
                   <div className="trend-item">
@@ -346,12 +346,12 @@ function UsageTracker() {
           {/* Price Range & Savings */}
           {(comparison.summary.best_month || comparison.summary.potential_savings) && (
             <div className="savings-analysis">
-              <h4 className="savings-title">💡 Potential Savings</h4>
+              <h4 className="savings-title">Potential Savings</h4>
 
               {comparison.summary.best_month && comparison.summary.worst_month && (
                 <div className="price-range">
                   <div className="price-range-item best">
-                    <div className="range-icon">✅</div>
+                    <div className="range-indicator"></div>
                     <div className="range-content">
                       <div className="range-label">Best Price</div>
                       <div className="range-value">€{comparison.summary.best_month.price}/ton</div>
@@ -359,7 +359,7 @@ function UsageTracker() {
                     </div>
                   </div>
                   <div className="price-range-item worst">
-                    <div className="range-icon">❌</div>
+                    <div className="range-indicator"></div>
                     <div className="range-content">
                       <div className="range-label">Highest Price</div>
                       <div className="range-value">€{comparison.summary.worst_month.price}/ton</div>
@@ -371,14 +371,14 @@ function UsageTracker() {
 
               {comparison.summary.potential_savings && (
                 <div className="savings-card">
-                  <div className="savings-icon">💰</div>
+                  <div className="savings-indicator"></div>
                   <div className="savings-content">
                     <div className="savings-amount">{formatCurrency(comparison.summary.potential_savings.amount)}</div>
                     <div className="savings-label">
                       Could have saved ({comparison.summary.potential_savings.percent}%) if all purchases were at best price
                     </div>
                     <div className="savings-tip">
-                      💡 Tip: Best time to buy historically was {new Date(comparison.summary.potential_savings.best_month + '-01').toLocaleDateString('en-US', { month: 'long' })} at €{comparison.summary.potential_savings.best_price}/ton
+                      Best time to buy historically was {new Date(comparison.summary.potential_savings.best_month + '-01').toLocaleDateString('en-US', { month: 'long' })} at €{comparison.summary.potential_savings.best_price}/ton
                     </div>
                   </div>
                 </div>
@@ -507,7 +507,7 @@ function UsageTracker() {
       {/* Seasonal Patterns */}
       {trends && trends.seasonal.length > 0 && (
         <div className="seasonal-section">
-          <h3 className="section-title">🌡️ Seasonal Patterns</h3>
+          <h3 className="section-title">Seasonal Patterns</h3>
           <p className="seasonal-desc">
             Heating season (Oct-Apr) vs Non-heating season (May-Sep)
           </p>
@@ -517,7 +517,7 @@ function UsageTracker() {
                 <div className="seasonal-header">
                   <span className="seasonal-year">{season.year}</span>
                   <span className="seasonal-badge">
-                    {season.season === 'heating_season' ? '🔥 Heating' : '☀️ Summer'}
+                    {season.season === 'heating_season' ? 'Heating' : 'Summer'}
                   </span>
                 </div>
                 <div className="seasonal-stats">
@@ -542,12 +542,12 @@ function UsageTracker() {
 
       {/* Insights */}
       <div className="insights-section">
-        <h3 className="section-title">💡 Usage Insights</h3>
+        <h3 className="section-title">Usage Insights</h3>
         <div className="insights-grid">
           {stats && trends && (
             <>
-              <div className="insight-card">
-                <div className="insight-icon">📊</div>
+              <div className="insight-card insight-card--pattern">
+                <div className="insight-indicator"></div>
                 <div className="insight-content">
                   <h4>Consumption Pattern</h4>
                   <p>
@@ -558,8 +558,8 @@ function UsageTracker() {
               </div>
 
               {trends.seasonal.length >= 2 && (
-                <div className="insight-card">
-                  <div className="insight-icon">🔥</div>
+                <div className="insight-card insight-card--seasonal">
+                  <div className="insight-indicator"></div>
                   <div className="insight-content">
                     <h4>Seasonal Variance</h4>
                     <p>
@@ -570,8 +570,8 @@ function UsageTracker() {
                 </div>
               )}
 
-              <div className="insight-card">
-                <div className="insight-icon">💰</div>
+              <div className="insight-card insight-card--cost">
+                <div className="insight-indicator"></div>
                 <div className="insight-content">
                   <h4>Cost Optimization</h4>
                   <p>

@@ -17,7 +17,7 @@
     "test:integration": "cross-env NODE_OPTIONS=--experimental-vm-modules jest tests/integration"
   },
   "dependencies": {
-    "@mendable/firecrawl-js": "^1.4.0",
+    "@mendable/firecrawl-js": "^4.11.1",
     "axios": "^1.12.2",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",

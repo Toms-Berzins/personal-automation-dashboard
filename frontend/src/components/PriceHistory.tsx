@@ -203,7 +203,7 @@ function PriceHistory() {
           <p className="tooltip-price">€{data.price.toFixed(2)}</p>
           {data.brand && <p className="tooltip-brand">{data.brand}</p>}
           <p className={`tooltip-stock ${data.inStock ? 'in-stock' : 'out-of-stock'}`}>
-            {data.inStock ? '✓ In Stock' : '✗ Out of Stock'}
+            {data.inStock ? 'In Stock' : 'Out of Stock'}
           </p>
         </div>
       );
@@ -230,7 +230,7 @@ function PriceHistory() {
             onClick={searchHistory}
             disabled={loading || !searchQuery.trim()}
           >
-            {loading ? '🔄 Searching...' : '🔍 Search'}
+            {loading ? 'Searching...' : 'Search'}
           </button>
           {!showLatest && (
             <button
@@ -253,13 +253,16 @@ function PriceHistory() {
           title="Refresh prices"
           aria-label="Refresh prices"
         >
-          🔄
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M23 4v6h-6M1 20v-6h6"/>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+          </svg>
         </button>
       </div>
 
       {error && (
         <div className="error-box">
-          <span className="error-icon">⚠️</span>
+          <span className="error-indicator"></span>
           {error}
         </div>
       )}
@@ -355,13 +358,13 @@ function PriceHistory() {
                 className={`control-btn ${chartType === 'line' ? 'active' : ''}`}
                 onClick={() => setChartType('line')}
               >
-                📈 Line
+                Line
               </button>
               <button
                 className={`control-btn ${chartType === 'bar' ? 'active' : ''}`}
                 onClick={() => setChartType('bar')}
               >
-                📊 Bar
+                Bar
               </button>
             </div>
           </div>
@@ -447,7 +450,7 @@ function PriceHistory() {
           </div>
         ) : displayData.length === 0 ? (
           <div className="empty-state">
-            <div className="empty-icon">📊</div>
+            <div className="empty-indicator"></div>
             <h3>No price history found</h3>
             <p>
               {showLatest
@@ -484,7 +487,7 @@ function PriceHistory() {
                     </td>
                     <td className="stock-cell">
                       <span className={`stock-badge ${item.in_stock ? 'in-stock' : 'out-of-stock'}`}>
-                        {item.in_stock ? '✓' : '✗'}
+                        <span className="stock-dot"></span>
                       </span>
                     </td>
                     <td className="url-cell">

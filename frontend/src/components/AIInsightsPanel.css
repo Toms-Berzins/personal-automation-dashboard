@@ -80,6 +80,11 @@
   }
 }
 
+/* Spinning refresh icon */
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
 .insights-loading p {
   color: var(--text-secondary);
   font-size: 14px;
@@ -91,10 +96,12 @@
   text-align: center;
 }
 
-.insights-error .error-icon {
-  font-size: 48px;
-  display: block;
-  margin-bottom: 16px;
+.insights-error .error-indicator {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--danger);
+  margin: 0 auto 16px;
 }
 
 .insights-error p {
@@ -146,6 +153,23 @@
   color: var(--text-secondary);
 }
 
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.meta-item::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--border);
+}
+
+.meta-item--data::before { background: var(--primary); }
+.meta-item--period::before { background: var(--success); }
+
 /* Insights List */
 .insights-list {
   padding: 24px;
@@ -176,10 +200,42 @@
   margin-bottom: 12px;
 }
 
-.insight-icon {
-  font-size: 24px;
-  line-height: 1;
+.insight-indicator {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
+
+.insight-indicator::after {
+  content: '';
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.insight-indicator--trend {
+  background: rgba(59, 130, 246, 0.15);
+}
+.insight-indicator--trend::after { background: #3b82f6; }
+
+.insight-indicator--anomaly {
+  background: rgba(245, 158, 11, 0.15);
+}
+.insight-indicator--anomaly::after { background: #f59e0b; }
+
+.insight-indicator--opportunity {
+  background: rgba(16, 185, 129, 0.15);
+}
+.insight-indicator--opportunity::after { background: #10b981; }
+
+.insight-indicator--warning {
+  background: rgba(239, 68, 68, 0.15);
+}
+.insight-indicator--warning::after { background: #ef4444; }
 
 .insight-title-group {
   flex: 1;
@@ -204,14 +260,14 @@
   color: var(--text-secondary);
   font-size: 14px;
   line-height: 1.6;
-  padding-left: 36px;
+  padding-left: 44px;
 }
 
 .insight-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-left: 36px;
+  padding-left: 44px;
 }
 
 /* Confidence Bar */
@@ -260,6 +316,17 @@
   font-size: 11px;
   font-weight: 600;
   border: 1px solid rgba(16, 185, 129, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.actionable-badge::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--success);
 }
 
 /* Empty State */
@@ -268,11 +335,24 @@
   text-align: center;
 }
 
-.empty-icon {
-  font-size: 64px;
-  display: block;
-  margin-bottom: 16px;
-  opacity: 0.5;
+.empty-indicator {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--bg-input);
+  border: 2px solid var(--border);
+  margin: 0 auto 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.empty-indicator::after {
+  content: '';
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--border);
 }
 
 .insights-empty p {

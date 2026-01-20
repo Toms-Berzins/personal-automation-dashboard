@@ -41,6 +41,9 @@ export interface PriceHistoryItem {
 export interface ScrapeRequest {
   url: string;
   saveToDb: boolean;
+  maxAge?: number;      // Cache duration in ms (default 2 hours)
+  minAge?: number;      // Minimum cache age before re-scrape
+  forceRefresh?: boolean; // Bypass cache entirely
 }
 
 export interface SearchRequest {
@@ -54,6 +57,9 @@ export interface SearchAndScrapeRequest {
   saveToDb?: boolean;
   maxSites?: number;
   maxPages?: number;
+  maxAge?: number;        // Cache duration in ms (default 2 hours)
+  forceRefresh?: boolean; // Bypass cache entirely
+  useSmartSearch?: boolean; // Use Exa-first smart search (default true, better for prices)
 }
 
 export interface SearchAndScrapeResult {
@@ -64,6 +70,7 @@ export interface SearchAndScrapeResult {
   scrapableSitesCount: number;
   scrapedSitesCount: number;
   totalProducts: number;
+  totalSaved?: number;
   scrapedData: Array<{
     url: string;
     title: string;
@@ -74,6 +81,26 @@ export interface SearchAndScrapeResult {
     pagesScraped?: number;
   }>;
   message?: string;
+}
+
+// Scraping Progress Types (for SSE streaming)
+export interface ScrapeProgress {
+  type: 'progress' | 'complete' | 'error';
+  stage?: 'searching' | 'search_complete' | 'scraping_site' | 'scraping_page' | 'products_found' | 'site_error';
+  message: string;
+  searchEngine?: string;
+  searchResultsCount?: number;
+  currentSite?: string;
+  currentSiteUrl?: string;
+  currentPage?: number;
+  totalPages?: number;
+  pageProducts?: number;
+  sitesCompleted: number;
+  sitesTotal: number;
+  productsFound: number;
+  productsSaved: number;
+  success?: boolean;
+  data?: SearchAndScrapeResult;
 }
 
 // Price Comparison Types
@@ -117,6 +144,9 @@ export interface SearchScrapeCompareRequest {
   maxSites?: number;
   maxPages?: number;
   priceChangeThreshold?: number;
+  maxAge?: number;        // Cache duration in ms (default 2 hours)
+  forceRefresh?: boolean; // Bypass cache entirely
+  useSmartSearch?: boolean; // Use Exa-first smart search (default true, better for prices)
 }
 
 export type ScraperMode = 'search' | 'scrape' | 'auto' | 'compare';

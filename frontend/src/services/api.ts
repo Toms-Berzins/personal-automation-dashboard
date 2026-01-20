@@ -18,7 +18,8 @@ import type {
   MonthlyConsumption,
   ConsumptionRecord,
   ConsumptionTrends,
-  ConsumptionPriceComparison
+  ConsumptionPriceComparison,
+  ScrapeProgress
 } from '../types';
 
 const API_BASE = '/api';
@@ -46,6 +47,73 @@ export const scraperApi = {
       params
     );
     return response.data;
+  },
+
+  // Streaming version with real-time progress updates via SSE
+  searchAndScrapeStream: (
+    params: SearchAndScrapeRequest,
+    onProgress: (progress: ScrapeProgress) => void,
+    onComplete: (result: SearchAndScrapeResult) => void,
+    onError: (error: string) => void
+  ): (() => void) => {
+    const abortController = new AbortController();
+
+    // Use fetch with ReadableStream for SSE since we need to POST with body
+    fetch(`${API_BASE}/search-and-scrape/stream`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(params),
+      signal: abortController.signal,
+    })
+      .then(async (response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const reader = response.body?.getReader();
+        if (!reader) {
+          throw new Error('No reader available');
+        }
+
+        const decoder = new TextDecoder();
+        let buffer = '';
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || '';
+
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              try {
+                const data = JSON.parse(line.slice(6)) as ScrapeProgress;
+                if (data.type === 'complete' && data.data) {
+                  onComplete(data.data);
+                } else if (data.type === 'error') {
+                  onError(data.message);
+                } else if (data.type === 'progress') {
+                  onProgress(data);
+                }
+              } catch (e) {
+                console.error('Failed to parse SSE data:', e);
+              }
+            }
+          }
+        }
+      })
+      .catch((error) => {
+        if (error.name !== 'AbortError') {
+          onError(error.message || 'Connection failed');
+        }
+      });
+
+    // Return abort function
+    return () => abortController.abort();
   },
 
   searchScrapeCompare: async (params: SearchScrapeCompareRequest): Promise<PriceComparisonResult> => {

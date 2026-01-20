@@ -2,7 +2,7 @@
 import '../config/env.js';
 import FirecrawlApp from '@mendable/firecrawl-js';
 import pg from 'pg';
-import { searchWithBrave, searchWithExa, searchWithDuckDuckGo } from '../services/searchService.js';
+import { searchWithBrave, searchWithExa, searchWithDuckDuckGo, smartSearch, searchWithExaContents } from '../services/searchService.js';
 import { processScrapedData, processBatch } from '../services/dataPipeline.js';
 import { compareWithHistory, detectPriceAlerts } from '../services/priceComparisonService.js';
 import * as dbModule from '../database/db.js';
@@ -10,11 +10,15 @@ import * as dbModule from '../database/db.js';
 const { Pool } = pg;
 const db = dbModule.default || dbModule;
 
-// Initialize Firecrawl
+// Initialize Firecrawl (v4.x SDK)
 const firecrawl = new FirecrawlApp({
   apiKey: process.env.FIRECRAWL_API_KEY,
   apiUrl: process.env.FIRECRAWL_API_URL || 'https://api.firecrawl.dev'
 });
+
+// Default cache settings (2 hours in ms for faster re-scrapes)
+const DEFAULT_MAX_AGE = 2 * 60 * 60 * 1000; // 2 hours
+const DEFAULT_MIN_AGE = 0; // No minimum age by default
 
 // Initialize PostgreSQL connection
 // Explicitly parse connection parameters to ensure password is a string
@@ -158,53 +162,78 @@ export async function searchProducts(req, res) {
  */
 export async function scrapeUrl(req, res) {
   try {
-    const { url, saveToDb = false } = req.body;
+    const {
+      url,
+      saveToDb = false,
+      maxAge = DEFAULT_MAX_AGE,  // Cache duration in ms (default 2 hours)
+      minAge = DEFAULT_MIN_AGE,  // Minimum cache age before re-scrape
+      forceRefresh = false       // Set true to bypass cache
+    } = req.body;
 
     if (!url) {
       return res.status(400).json({ error: 'URL is required' });
     }
 
-    console.log(`📥 Scraping: ${url}`);
+    console.log(`📥 Scraping: ${url}${forceRefresh ? ' (force refresh)' : ''}`);
 
-    // Try scraping with multiple products schema first
-    const scrapeResult = await firecrawl.scrapeUrl(url, {
-      formats: ['markdown', 'extract'],
-      extract: {
-        schema: multipleProductsSchema
-      },
+    // Scrape with v4.x SDK - use JSON format with schema for structured extraction
+    const scrapeOptions = {
+      formats: [
+        'markdown',
+        { type: 'json', schema: multipleProductsSchema }
+      ],
       onlyMainContent: true,
-      waitFor: 2000
-    });
+      waitFor: 2000,
+      maxAge: forceRefresh ? 0 : maxAge  // Set to 0 to force fresh scrape
+    };
 
-    if (!scrapeResult.success) {
+    // Add minAge if specified (requires cache to be at least this old before re-scraping)
+    if (minAge > 0) {
+      scrapeOptions.minAge = minAge;
+    }
+
+    const scrapeResult = await firecrawl.scrape(url, scrapeOptions);
+
+    // v4.x SDK may return data directly without success wrapper, or with success=true
+    // Check if we got valid data (markdown or json present means success)
+    const hasValidData = scrapeResult && (scrapeResult.markdown || scrapeResult.json || scrapeResult.success);
+
+    if (!hasValidData) {
+      console.error('Scrape failed - no valid data returned:', scrapeResult);
       return res.json({
         success: false,
         url,
         timestamp: new Date().toISOString(),
         saved: false,
-        error: 'Failed to scrape URL'
+        error: scrapeResult?.error || 'Failed to scrape URL'
       });
     }
 
-    const extractedData = scrapeResult.extract || scrapeResult.data?.extract || {};
-    const products = extractedData.products || [];
+    // v4.x SDK returns JSON data in scrapeResult.json (or .extract for backwards compat)
+    const extractedData = scrapeResult.json || scrapeResult.extract || scrapeResult.data?.extract || {};
+    const rawProducts = extractedData.products || [];
 
-    console.log(`✓ Extracted ${products.length} product(s):`, products);
+    // Filter out products with invalid prices (price: 0 or undefined usually means landing page)
+    const products = rawProducts.filter(p => p.price && p.price > 0);
+
+    console.log(`✓ Extracted ${products.length} valid product(s) (${rawProducts.length - products.length} filtered):`, products);
 
     let saved = false;
     let savedCount = 0;
 
-    // Save to database if requested (using new pipeline)
+    // Save to database if requested (using simple product_prices table)
     if (saveToDb && products.length > 0) {
       try {
-        // Add URL to each product for the pipeline
-        const productsWithUrl = products.map(p => ({ ...p, url }));
-
-        const batchResult = await processBatch(productsWithUrl);
-        savedCount = batchResult.succeeded;
+        for (const product of products) {
+          try {
+            await saveToDatabase(url, product);
+            savedCount++;
+          } catch (productError) {
+            console.error(`Failed to save product "${product.product_name}":`, productError.message);
+          }
+        }
         saved = savedCount > 0;
-
-        console.log(`💾 Saved ${savedCount} product(s) to database (${batchResult.failed} failed)`);
+        console.log(`💾 Saved ${savedCount}/${products.length} product(s) to database`);
       } catch (dbError) {
         console.error('Database save error:', dbError);
       }
@@ -322,7 +351,10 @@ export async function searchAndScrape(req, res) {
       limit = 5,
       saveToDb = false,
       maxSites = 3,  // Max sites to scrape
-      maxPages = 1   // Pages per site (1-30)
+      maxPages = 1,  // Pages per site (1-30)
+      maxAge = DEFAULT_MAX_AGE,  // Cache duration in ms
+      forceRefresh = false,      // Bypass cache
+      useSmartSearch = true      // Use Exa-first smart search (better for prices)
     } = req.body;
 
     if (!query) {
@@ -335,9 +367,11 @@ export async function searchAndScrape(req, res) {
 
     console.log(`🔍🔧 Smart Search & Scrape: "${query}" (max ${sitesToScrape} sites, ${pagesPerSite} pages each)`);
 
-    // Step 1: Search
+    // Step 1: Search - use smartSearch for better price extraction (Exa-first)
     let searchResult;
-    if (process.env.BRAVE_API_KEY) {
+    if (useSmartSearch) {
+      searchResult = await smartSearch(query, limit, { extractContent: true, preferExa: true });
+    } else if (process.env.BRAVE_API_KEY) {
       searchResult = await searchWithBrave(query, limit);
     } else if (process.env.EXA_API_KEY) {
       searchResult = await searchWithExa(query, limit);
@@ -391,29 +425,41 @@ export async function searchAndScrape(req, res) {
             const pageUrl = generatePaginatedUrl(result.url, page);
             console.log(`📥 Scraping page ${page}/${pagesPerSite}: ${pageUrl}`);
 
-            const scrapeResult = await firecrawl.scrapeUrl(pageUrl, {
-              formats: ['markdown', 'extract'],
-              extract: {
-                schema: multipleProductsSchema
-              },
+            const scrapeResult = await firecrawl.scrape(pageUrl, {
+              formats: [
+                'markdown',
+                { type: 'json', schema: multipleProductsSchema }
+              ],
               onlyMainContent: true,
-              waitFor: 2000
+              waitFor: 2000,
+              maxAge: forceRefresh ? 0 : maxAge
             });
 
-            if (scrapeResult.success) {
-              const extractedData = scrapeResult.extract || scrapeResult.data?.extract || {};
-              const products = extractedData.products || [];
+            // v4.x SDK may return data directly without success wrapper
+            const hasValidData = scrapeResult && (scrapeResult.markdown || scrapeResult.json || scrapeResult.success);
 
-              console.log(`✓ Extracted ${products.length} product(s) from page ${page}`);
+            if (hasValidData) {
+              const extractedData = scrapeResult.json || scrapeResult.extract || scrapeResult.data?.extract || {};
+              const rawProducts = extractedData.products || [];
+
+              // Filter out products with invalid prices (price: 0 or undefined usually means landing page)
+              const products = rawProducts.filter(p => p.price && p.price > 0);
+
+              console.log(`✓ Extracted ${products.length} valid product(s) from page ${page} (${rawProducts.length - products.length} filtered)`);
 
               if (products.length > 0) {
                 siteProducts.push(...products);
 
-                // Save to database if requested (using new pipeline)
+                // Save to database if requested (using simple product_prices table)
                 if (saveToDb) {
-                  const productsWithUrl = products.map(p => ({ ...p, url: pageUrl }));
-                  const batchResult = await processBatch(productsWithUrl);
-                  siteSavedCount += batchResult.succeeded;
+                  for (const product of products) {
+                    try {
+                      await saveToDatabase(pageUrl, product);
+                      siteSavedCount++;
+                    } catch (productError) {
+                      console.error(`Failed to save product "${product.product_name}":`, productError.message);
+                    }
+                  }
                 }
               } else {
                 // No products found, might be end of pagination
@@ -421,7 +467,7 @@ export async function searchAndScrape(req, res) {
                 break;
               }
             } else {
-              console.log(`⚠️ Failed to scrape page ${page}`);
+              console.log(`⚠️ Failed to scrape page ${page}:`, scrapeResult?.error || 'unknown error');
               if (page === 1) break; // If first page fails, skip this site
             }
 
@@ -474,6 +520,259 @@ export async function searchAndScrape(req, res) {
     res.status(500).json({
       error: error.message || 'Failed to search and scrape'
     });
+  }
+}
+
+/**
+ * Smart Search & Scrape with SSE streaming progress
+ * Streams real-time progress updates to the client
+ */
+export async function searchAndScrapeStream(req, res) {
+  // Set SSE headers
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('X-Accel-Buffering', 'no'); // Disable nginx buffering
+  res.flushHeaders();
+
+  const sendProgress = (data) => {
+    res.write(`data: ${JSON.stringify(data)}\n\n`);
+  };
+
+  try {
+    const {
+      query,
+      limit = 5,
+      saveToDb = false,
+      maxSites = 3,
+      maxPages = 1,
+      maxAge = DEFAULT_MAX_AGE,
+      forceRefresh = false,
+      useSmartSearch = true
+    } = req.body;
+
+    if (!query) {
+      sendProgress({ type: 'error', message: 'Query is required' });
+      res.end();
+      return;
+    }
+
+    const pagesPerSite = Math.min(Math.max(1, maxPages), 30);
+    const sitesToScrape = Math.min(Math.max(1, maxSites), 10);
+    const cacheAge = forceRefresh ? 0 : maxAge;
+
+    // Step 1: Search - use smartSearch for better price extraction
+    sendProgress({
+      type: 'progress',
+      stage: 'searching',
+      message: useSmartSearch ? 'Smart searching for products (Exa-first)...' : 'Searching for products...',
+      sitesCompleted: 0,
+      sitesTotal: sitesToScrape,
+      productsFound: 0,
+      productsSaved: 0
+    });
+
+    let searchResult;
+    if (useSmartSearch) {
+      searchResult = await smartSearch(query, limit, { extractContent: true, preferExa: true });
+    } else if (process.env.BRAVE_API_KEY) {
+      searchResult = await searchWithBrave(query, limit);
+    } else if (process.env.EXA_API_KEY) {
+      searchResult = await searchWithExa(query, limit);
+    } else {
+      searchResult = await searchWithDuckDuckGo(query, limit);
+    }
+
+    sendProgress({
+      type: 'progress',
+      stage: 'search_complete',
+      message: `Found ${searchResult.results.length} results via ${searchResult.engine}`,
+      searchEngine: searchResult.engine,
+      searchResultsCount: searchResult.results.length,
+      sitesCompleted: 0,
+      sitesTotal: sitesToScrape,
+      productsFound: 0,
+      productsSaved: 0
+    });
+
+    // Blocklist
+    const blockedDomains = [
+      'salidzini.lv', 'google.com', 'amazon.com', 'ebay.com', 'aliexpress.com'
+    ];
+
+    const scrapableUrls = searchResult.results.filter(result => {
+      const url = new URL(result.url);
+      return !blockedDomains.some(domain => url.hostname.includes(domain));
+    });
+
+    if (scrapableUrls.length === 0) {
+      sendProgress({
+        type: 'complete',
+        success: false,
+        message: 'No scrapable URLs found (all blocked)',
+        data: { success: false, scrapedData: [], totalProducts: 0 }
+      });
+      res.end();
+      return;
+    }
+
+    // Step 2: Scrape sites
+    const urlsToScrape = scrapableUrls.slice(0, sitesToScrape);
+    const scrapedData = [];
+    let totalProductsFound = 0;
+    let totalProductsSaved = 0;
+
+    for (let siteIndex = 0; siteIndex < urlsToScrape.length; siteIndex++) {
+      const result = urlsToScrape[siteIndex];
+      const siteProducts = [];
+      let siteSavedCount = 0;
+
+      sendProgress({
+        type: 'progress',
+        stage: 'scraping_site',
+        message: `Scraping site ${siteIndex + 1}/${urlsToScrape.length}: ${new URL(result.url).hostname}`,
+        currentSite: result.title || new URL(result.url).hostname,
+        currentSiteUrl: result.url,
+        sitesCompleted: siteIndex,
+        sitesTotal: urlsToScrape.length,
+        productsFound: totalProductsFound,
+        productsSaved: totalProductsSaved
+      });
+
+      try {
+        for (let page = 1; page <= pagesPerSite; page++) {
+          try {
+            const pageUrl = generatePaginatedUrl(result.url, page);
+
+            if (pagesPerSite > 1) {
+              sendProgress({
+                type: 'progress',
+                stage: 'scraping_page',
+                message: `Scraping page ${page}/${pagesPerSite} of ${new URL(result.url).hostname}`,
+                currentSite: result.title || new URL(result.url).hostname,
+                currentPage: page,
+                totalPages: pagesPerSite,
+                sitesCompleted: siteIndex,
+                sitesTotal: urlsToScrape.length,
+                productsFound: totalProductsFound,
+                productsSaved: totalProductsSaved
+              });
+            }
+
+            const scrapeResult = await firecrawl.scrape(pageUrl, {
+              formats: [
+                'markdown',
+                { type: 'json', schema: multipleProductsSchema }
+              ],
+              onlyMainContent: true,
+              waitFor: 2000,
+              maxAge: cacheAge
+            });
+
+            // v4.x SDK may return data directly without success wrapper
+            const hasValidData = scrapeResult && (scrapeResult.markdown || scrapeResult.json || scrapeResult.success);
+
+            if (hasValidData) {
+              const extractedData = scrapeResult.json || scrapeResult.extract || scrapeResult.data?.extract || {};
+              const rawProducts = extractedData.products || [];
+
+              // Filter out products with invalid prices (price: 0 or undefined usually means landing page)
+              const products = rawProducts.filter(p => p.price && p.price > 0);
+
+              if (products.length > 0) {
+                siteProducts.push(...products);
+                totalProductsFound += products.length;
+
+                // Save to database if requested
+                if (saveToDb) {
+                  for (const product of products) {
+                    try {
+                      await saveToDatabase(pageUrl, product);
+                      siteSavedCount++;
+                      totalProductsSaved++;
+                    } catch (productError) {
+                      console.error(`Failed to save product:`, productError.message);
+                    }
+                  }
+                }
+
+                sendProgress({
+                  type: 'progress',
+                  stage: 'products_found',
+                  message: `Found ${products.length} products on page ${page}`,
+                  currentSite: result.title || new URL(result.url).hostname,
+                  pageProducts: products.length,
+                  sitesCompleted: siteIndex,
+                  sitesTotal: urlsToScrape.length,
+                  productsFound: totalProductsFound,
+                  productsSaved: totalProductsSaved
+                });
+              } else {
+                break; // No more products
+              }
+            } else {
+              console.log(`⚠️ Failed to scrape page ${page}:`, scrapeResult?.error || 'unknown error');
+              if (page === 1) break;
+            }
+
+            if (page < pagesPerSite) {
+              await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+          } catch (pageError) {
+            console.error(`Error on page ${page}:`, pageError.message);
+            if (page === 1) break;
+          }
+        }
+
+        if (siteProducts.length > 0) {
+          scrapedData.push({
+            url: result.url,
+            title: result.title,
+            products: siteProducts,
+            count: siteProducts.length,
+            saved: saveToDb,
+            savedCount: siteSavedCount,
+            pagesScraped: Math.min(pagesPerSite, Math.ceil(siteProducts.length / 10))
+          });
+        }
+      } catch (siteError) {
+        console.error(`Failed to scrape ${result.url}:`, siteError.message);
+        sendProgress({
+          type: 'progress',
+          stage: 'site_error',
+          message: `Failed to scrape ${new URL(result.url).hostname}: ${siteError.message}`,
+          sitesCompleted: siteIndex + 1,
+          sitesTotal: urlsToScrape.length,
+          productsFound: totalProductsFound,
+          productsSaved: totalProductsSaved
+        });
+      }
+    }
+
+    // Complete
+    sendProgress({
+      type: 'complete',
+      success: true,
+      message: `Completed! Found ${totalProductsFound} products from ${scrapedData.length} sites`,
+      data: {
+        success: true,  // Include in data so frontend receives it
+        query,
+        searchEngine: searchResult.engine,
+        searchResultsCount: searchResult.results.length,
+        scrapableSitesCount: scrapableUrls.length,
+        scrapedSitesCount: scrapedData.length,
+        totalProducts: totalProductsFound,
+        totalSaved: totalProductsSaved,
+        scrapedData
+      }
+    });
+
+    res.end();
+
+  } catch (error) {
+    console.error('Stream error:', error);
+    sendProgress({ type: 'error', message: error.message || 'Scraping failed' });
+    res.end();
   }
 }
 
@@ -556,7 +855,10 @@ export async function searchScrapeCompare(req, res) {
       saveToDb = false,
       maxSites = 3,
       maxPages = 1,
-      priceChangeThreshold = 1 // 1% threshold for "significant" price changes
+      priceChangeThreshold = 1, // 1% threshold for "significant" price changes
+      maxAge = DEFAULT_MAX_AGE,
+      forceRefresh = false,
+      useSmartSearch = true
     } = req.body;
 
     if (!query) {
@@ -568,9 +870,11 @@ export async function searchScrapeCompare(req, res) {
 
     console.log(`🔍📊 Smart Search, Scrape & Compare: "${query}"`);
 
-    // Step 1: Search
+    // Step 1: Search - use smartSearch for better price extraction
     let searchResult;
-    if (process.env.BRAVE_API_KEY) {
+    if (useSmartSearch) {
+      searchResult = await smartSearch(query, limit, { extractContent: true, preferExa: true });
+    } else if (process.env.BRAVE_API_KEY) {
       searchResult = await searchWithBrave(query, limit);
     } else if (process.env.EXA_API_KEY) {
       searchResult = await searchWithExa(query, limit);
@@ -606,16 +910,25 @@ export async function searchScrapeCompare(req, res) {
         for (let page = 1; page <= pagesPerSite; page++) {
           const pageUrl = generatePaginatedUrl(result.url, page);
 
-          const scrapeResult = await firecrawl.scrapeUrl(pageUrl, {
-            formats: ['markdown', 'extract'],
-            extract: { schema: multipleProductsSchema },
+          const scrapeResult = await firecrawl.scrape(pageUrl, {
+            formats: [
+              'markdown',
+              { type: 'json', schema: multipleProductsSchema }
+            ],
             onlyMainContent: true,
-            waitFor: 2000
+            waitFor: 2000,
+            maxAge: forceRefresh ? 0 : maxAge
           });
 
-          if (scrapeResult.success) {
-            const extractedData = scrapeResult.extract || scrapeResult.data?.extract || {};
-            const products = extractedData.products || [];
+          // v4.x SDK may return data directly without success wrapper
+          const hasValidData = scrapeResult && (scrapeResult.markdown || scrapeResult.json || scrapeResult.success);
+
+          if (hasValidData) {
+            const extractedData = scrapeResult.json || scrapeResult.extract || scrapeResult.data?.extract || {};
+            const rawProducts = extractedData.products || [];
+
+            // Filter out products with invalid prices (price: 0 or undefined usually means landing page)
+            const products = rawProducts.filter(p => p.price && p.price > 0);
 
             if (products.length > 0) {
               allProducts.push(...products.map(p => ({ ...p, url: pageUrl })));
@@ -623,6 +936,7 @@ export async function searchScrapeCompare(req, res) {
               break; // No more products on this site
             }
           } else {
+            console.log(`⚠️ Failed to scrape page ${page}:`, scrapeResult?.error || 'unknown error');
             if (page === 1) break;
           }
 
@@ -635,7 +949,7 @@ export async function searchScrapeCompare(req, res) {
       }
     }
 
-    console.log(`✓ Scraped ${allProducts.length} total products`);
+    console.log(`✓ Scraped ${allProducts.length} total valid products`);
 
     // Step 4: Compare with historical data BEFORE saving
     const comparison = await compareWithHistory(allProducts, { priceChangeThreshold });
@@ -646,13 +960,19 @@ export async function searchScrapeCompare(req, res) {
     console.log(`   Price decreases: ${comparison.priceDecreases.length}`);
     console.log(`   Unchanged: ${comparison.summary.unchanged}`);
 
-    // Step 5: Save to database if requested
+    // Step 5: Save to database if requested (using simple product_prices table)
     let savedCount = 0;
     if (saveToDb && allProducts.length > 0) {
       try {
-        const batchResult = await processBatch(allProducts);
-        savedCount = batchResult.succeeded;
-        console.log(`💾 Saved ${savedCount} products to database`);
+        for (const product of allProducts) {
+          try {
+            await saveToDatabase(product.url, product);
+            savedCount++;
+          } catch (productError) {
+            console.error(`Failed to save product "${product.product_name}":`, productError.message);
+          }
+        }
+        console.log(`💾 Saved ${savedCount}/${allProducts.length} products to database`);
       } catch (dbError) {
         console.error('Database save error:', dbError);
       }

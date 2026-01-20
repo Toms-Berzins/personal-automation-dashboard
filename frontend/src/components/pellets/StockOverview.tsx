@@ -4,7 +4,6 @@ import {
   formatNumber,
   getStockStatusColor,
   getStockStatusLabel,
-  getStockStatusEmoji,
 } from '../../services/pelletApi';
 
 interface StockOverviewProps {
@@ -23,7 +22,6 @@ const StockOverview: React.FC<StockOverviewProps> = ({
   const stockPercentage = currentStock.stock_percentage || 0;
   const statusColor = getStockStatusColor(stockPercentage);
   const statusLabel = getStockStatusLabel(stockPercentage);
-  const statusEmoji = getStockStatusEmoji(stockPercentage);
 
   return (
     <div className="stock-overview">
@@ -31,7 +29,7 @@ const StockOverview: React.FC<StockOverviewProps> = ({
       <div className="overview-header">
         <div className="header-left">
           <h2 className="overview-title">
-            <span className="title-icon">🔥</span>
+            <span className="title-icon title-icon--stock"></span>
             Current Stock Status
           </h2>
           <p className="overview-subtitle">Pellet inventory and consumption tracking</p>
@@ -39,12 +37,12 @@ const StockOverview: React.FC<StockOverviewProps> = ({
         <div className="header-actions">
           {onQuickEntry && (
             <button className="btn btn-secondary" onClick={onQuickEntry}>
-              <span>📝</span> Quick Entry
+              <span className="btn-icon-indicator btn-icon--entry"></span> Quick Entry
             </button>
           )}
           {onAddStock && (
             <button className="btn btn-primary" onClick={onAddStock}>
-              <span>➕</span> Add Stock
+              <span className="btn-icon-indicator btn-icon--add"></span> Add Stock
             </button>
           )}
         </div>
@@ -55,7 +53,7 @@ const StockOverview: React.FC<StockOverviewProps> = ({
         <div className="card-header">
           <h3>Remaining Stock</h3>
           <span className="status-badge" style={{ backgroundColor: statusColor }}>
-            {statusEmoji} {statusLabel}
+            <span className="status-dot"></span> {statusLabel}
           </span>
         </div>
 
@@ -181,19 +179,19 @@ const StockOverview: React.FC<StockOverviewProps> = ({
               <>
                 {projection.estimated_weeks_remaining > 4 ? (
                   <div className="suggestion good">
-                    <span className="suggestion-icon">✅</span>
+                    <span className="suggestion-icon suggestion-icon--good"></span>
                     <p className="suggestion-text">Stock is sufficient</p>
                     <p className="suggestion-detail">Review in 2-3 weeks</p>
                   </div>
                 ) : projection.estimated_weeks_remaining > 2 ? (
                   <div className="suggestion warning">
-                    <span className="suggestion-icon">⚠️</span>
+                    <span className="suggestion-icon suggestion-icon--warning"></span>
                     <p className="suggestion-text">Consider ordering soon</p>
                     <p className="suggestion-detail">~{Math.ceil(projection.estimated_weeks_remaining)} weeks remaining</p>
                   </div>
                 ) : (
                   <div className="suggestion urgent">
-                    <span className="suggestion-icon">🔴</span>
+                    <span className="suggestion-icon suggestion-icon--urgent"></span>
                     <p className="suggestion-text">Order immediately!</p>
                     <p className="suggestion-detail">Stock critically low</p>
                   </div>
@@ -209,7 +207,7 @@ const StockOverview: React.FC<StockOverviewProps> = ({
       {/* Alerts Section */}
       {stockPercentage < 30 && stockPercentage > 0 && (
         <div className={`stock-alert ${stockPercentage < 15 ? 'alert-critical' : 'alert-warning'}`}>
-          <span className="alert-icon">{stockPercentage < 15 ? '🚨' : '⚠️'}</span>
+          <span className={`alert-icon alert-icon--${stockPercentage < 15 ? 'critical' : 'warning'}`}></span>
           <div className="alert-content">
             <h4 className="alert-title">
               {stockPercentage < 15 ? 'Critical Stock Level' : 'Low Stock Warning'}

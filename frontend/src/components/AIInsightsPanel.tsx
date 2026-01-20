@@ -56,18 +56,8 @@ function AIInsightsPanel() {
   }, [days]);
 
   const getInsightIcon = (type: string) => {
-    switch (type) {
-      case 'trend':
-        return '📈';
-      case 'anomaly':
-        return '⚠️';
-      case 'opportunity':
-        return '💡';
-      case 'warning':
-        return '🚨';
-      default:
-        return '📊';
-    }
+    // Return a class name for CSS-based icon indicators
+    return type;
   };
 
   const getInsightColor = (type: string) => {
@@ -89,7 +79,7 @@ function AIInsightsPanel() {
     return (
       <div className="ai-insights-panel">
         <div className="panel-header">
-          <h2>🤖 AI Insights</h2>
+          <h2>AI Insights</h2>
         </div>
         <div className="insights-loading">
           <div className="loading-spinner"></div>
@@ -103,10 +93,10 @@ function AIInsightsPanel() {
     return (
       <div className="ai-insights-panel">
         <div className="panel-header">
-          <h2>🤖 AI Insights</h2>
+          <h2>AI Insights</h2>
         </div>
         <div className="insights-error">
-          <span className="error-icon">⚠️</span>
+          <span className="error-indicator"></span>
           <p>{error}</p>
           <button onClick={loadCachedInsights} className="retry-btn">
             Try Again
@@ -120,7 +110,7 @@ function AIInsightsPanel() {
     <div className="ai-insights-panel">
       <div className="panel-header">
         <div className="header-content">
-          <h2>🤖 AI Insights</h2>
+          <h2>AI Insights</h2>
           <p className="header-subtitle">Powered by GPT-5 Nano</p>
         </div>
         <div className="header-controls">
@@ -141,7 +131,10 @@ function AIInsightsPanel() {
             disabled={generating}
             aria-label="Generate new insights"
           >
-            {generating ? '⏳' : '🔄'}
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={generating ? 'spinning' : ''}>
+              <path d="M23 4v6h-6M1 20v-6h6"/>
+              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+            </svg>
           </button>
         </div>
       </div>
@@ -157,7 +150,7 @@ function AIInsightsPanel() {
       {/* No cached data state */}
       {!generating && noCachedData && !insights && (
         <div className="insights-empty">
-          <span className="empty-icon">💡</span>
+          <span className="empty-indicator"></span>
           <p>No cached insights available</p>
           <p className="empty-hint">Click the refresh button to generate new AI insights</p>
         </div>
@@ -172,8 +165,8 @@ function AIInsightsPanel() {
               <h3>Summary</h3>
               <p>{insights.summary}</p>
               <div className="summary-meta">
-                <span>📊 {insights.sample_count} data points</span>
-                <span>📅 {insights.data_period}</span>
+                <span className="meta-item meta-item--data">{insights.sample_count} data points</span>
+                <span className="meta-item meta-item--period">{insights.data_period}</span>
               </div>
             </div>
           )}
@@ -184,11 +177,11 @@ function AIInsightsPanel() {
               {insights.insights.map((insight, index) => (
                 <div
                   key={index}
-                  className="insight-card"
+                  className={`insight-card insight-card--${insight.type}`}
                   style={{ borderLeftColor: getInsightColor(insight.type) }}
                 >
                   <div className="insight-header">
-                    <span className="insight-icon">{getInsightIcon(insight.type)}</span>
+                    <span className={`insight-indicator insight-indicator--${insight.type}`}></span>
                     <div className="insight-title-group">
                       <h4>{insight.title}</h4>
                       <span className="insight-type" style={{ color: getInsightColor(insight.type) }}>
@@ -209,7 +202,7 @@ function AIInsightsPanel() {
                       <span className="confidence-value">{insight.confidence}%</span>
                     </div>
                     {insight.actionable && (
-                      <span className="actionable-badge">✓ Actionable</span>
+                      <span className="actionable-badge">Actionable</span>
                     )}
                   </div>
                 </div>
@@ -220,7 +213,7 @@ function AIInsightsPanel() {
           {/* Empty State */}
           {(!insights.insights || insights.insights.length === 0) && (
             <div className="insights-empty">
-              <span className="empty-icon">📊</span>
+              <span className="empty-indicator"></span>
               <p>No insights available for this period</p>
               <p className="empty-hint">Try selecting a longer time period or add more data</p>
             </div>

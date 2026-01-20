@@ -38,23 +38,57 @@
 .stat-card {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+  gap: 1.25rem;
+  background: var(--bg-card);
   padding: 1.5rem;
-  border-radius: 1rem;
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
-  color: white;
+  border-radius: 0.875rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--border);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--stat-accent, var(--primary));
 }
 
 .stat-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
 }
 
-.stat-icon {
-  font-size: 2.5rem;
-  opacity: 0.95;
+/* Stat card color variants */
+.stat-card--total { --stat-accent: #3b82f6; }
+.stat-card--average { --stat-accent: #10b981; }
+.stat-card--peak { --stat-accent: #f59e0b; }
+.stat-card--recent { --stat-accent: #8b5cf6; }
+
+.stat-indicator {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--stat-accent, var(--primary)) 12%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.stat-indicator::after {
+  content: '';
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--stat-accent, var(--primary));
+  opacity: 0.8;
 }
 
 .stat-content {
@@ -62,22 +96,26 @@
 }
 
 .stat-label {
-  font-size: 0.85rem;
-  opacity: 0.9;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  margin-bottom: 0.3rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
 }
 
 .stat-value {
-  font-size: 2rem;
+  font-size: 1.75rem;
   font-weight: 700;
-  margin-bottom: 0.2rem;
+  color: var(--text-primary);
+  margin-bottom: 0.15rem;
+  line-height: 1.2;
 }
 
 .stat-meta {
-  font-size: 0.9rem;
-  opacity: 0.85;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  opacity: 0.8;
 }
 
 /* Period Selector - Theme-Aware */
@@ -448,9 +486,38 @@
   border-left: 4px solid #ef4444;
 }
 
-.range-icon {
-  font-size: 2rem;
+.range-indicator {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.price-range-item.best .range-indicator {
+  background: rgba(16, 185, 129, 0.15);
+}
+
+.price-range-item.best .range-indicator::after {
+  content: '';
+  width: 16px;
+  height: 16px;
+  background: #10b981;
+  border-radius: 50%;
+}
+
+.price-range-item.worst .range-indicator {
+  background: rgba(239, 68, 68, 0.15);
+}
+
+.price-range-item.worst .range-indicator::after {
+  content: '';
+  width: 16px;
+  height: 16px;
+  background: #ef4444;
+  border-radius: 50%;
 }
 
 .range-content {
@@ -502,9 +569,23 @@
   border-left: 4px solid #3b82f6;
 }
 
-.savings-icon {
-  font-size: 3rem;
+.savings-indicator {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  background: rgba(59, 130, 246, 0.15);
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.savings-indicator::after {
+  content: '';
+  width: 24px;
+  height: 24px;
+  background: #3b82f6;
+  border-radius: 50%;
 }
 
 .savings-content {
@@ -868,10 +949,29 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-.insight-icon {
-  font-size: 2rem;
+.insight-indicator {
+  width: 44px;
+  height: 44px;
+  border-radius: 11px;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--insight-color, var(--primary)) 12%, transparent);
 }
+
+.insight-indicator::after {
+  content: '';
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--insight-color, var(--primary));
+}
+
+/* Insight card color variants */
+.insight-card--pattern { --insight-color: #3b82f6; }
+.insight-card--seasonal { --insight-color: #f59e0b; }
+.insight-card--cost { --insight-color: #10b981; }
 
 .insight-content h4 {
   margin: 0 0 0.5rem 0;
@@ -951,12 +1051,16 @@
 /* Dark Mode Specific Adjustments */
 @media (prefers-color-scheme: dark) {
   .stat-card {
-    background: linear-gradient(135deg, #4f8fff 0%, #7c7ff6 100%);
-    box-shadow: 0 2px 8px rgba(79, 143, 255, 0.25);
+    background: var(--bg-card);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   }
 
   .stat-card:hover {
-    box-shadow: 0 4px 12px rgba(79, 143, 255, 0.3);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+  }
+
+  .stat-indicator {
+    background: color-mix(in srgb, var(--stat-accent, var(--primary)) 15%, transparent);
   }
 
   .chart-bar {
