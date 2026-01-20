@@ -1291,3 +1291,114 @@
       -5px -5px 15px rgba(255, 255, 255, 0.08);
   }
 }
+
+/* ================================
+   FORM SECTIONS & ORGANIZATION
+   ================================ */
+
+/* Form Section Headers */
+.form-section {
+  margin-bottom: 32px;
+  padding: 24px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.form-section--optional {
+  background: rgba(255, 255, 255, 0.01);
+  border-style: dashed;
+}
+
+.section-header {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 20px 0;
+  padding-bottom: 12px;
+  border-bottom: 2px solid rgba(59, 130, 246, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.optional-badge {
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.05);
+  padding: 2px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Table Header Optional Indicators */
+.optional-header {
+  font-size: 10px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.4);
+  text-transform: lowercase;
+  letter-spacing: 0;
+  margin-left: 4px;
+  display: inline-block;
+}
+
+/* Style for empty/missing data cells */
+.na-value {
+  color: rgba(255, 255, 255, 0.25) !important;
+  font-style: italic;
+  font-size: 13px;
+}
+
+/* Calculated Totals Improvements */
+.calculated-totals {
+  display: flex;
+  gap: 24px;
+  padding: 20px;
+  background: rgba(59, 130, 246, 0.08);
+  border-radius: 12px;
+  margin-bottom: 32px;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.calculated-totals .total-item {
+  flex: 1;
+  text-align: center;
+}
+
+.calculated-totals .total-label {
+  display: block;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.calculated-totals .total-value {
+  display: block;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+/* Ghost Button for Secondary Actions */
+.btn-ghost {
+  background: transparent;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.75);
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.btn-ghost:hover {
+  border-color: var(--primary);
+  background: rgba(59, 130, 246, 0.1);
+  color: var(--primary);
+  transform: translateY(-1px);
+}
+
+.btn-ghost:active {
+  transform: translateY(0);
+}

@@ -36,8 +36,8 @@ const StockOverview: React.FC<StockOverviewProps> = ({
         </div>
         <div className="header-actions">
           {onQuickEntry && (
-            <button className="btn btn-secondary" onClick={onQuickEntry}>
-              <span className="btn-icon-indicator btn-icon--entry"></span> Quick Entry
+            <button className="btn btn-ghost" onClick={onQuickEntry} title="Quickly log weekly consumption">
+              <span className="btn-icon-indicator btn-icon--entry"></span> Log Usage
             </button>
           )}
           {onAddStock && (

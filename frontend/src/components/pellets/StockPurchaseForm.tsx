@@ -133,123 +133,133 @@ const StockPurchaseForm: React.FC<StockPurchaseFormProps> = ({
       )}
 
       <form onSubmit={handleSubmit}>
-        {/* Purchase Date */}
-        <div className="form-group">
-          <label htmlFor="purchase_date">
-            Purchase Date <span className="required">*</span>
-          </label>
-          <DatePicker
-            value={formData.purchase_date}
-            onChange={handleDateChange}
-            maxDate={new Date()}
-            placeholder="Select purchase date"
-            required
-          />
-        </div>
+        {/* SECTION: Purchase Information */}
+        <div className="form-section">
+          <h4 className="section-header">Purchase Information</h4>
 
-        {/* Entry Mode Toggle */}
-        <div className="form-group">
-          <label>Entry Mode <span className="required">*</span></label>
-          <div className="toggle-switch-container">
-            <button
-              type="button"
-              className={`toggle-option ${formData.entry_mode === 'pallets' ? 'active' : ''}`}
-              onClick={() => setFormData({ ...formData, entry_mode: 'pallets' })}
-            >
-              <span className="toggle-icon">📦</span>
-              <span className="toggle-text">Pallets</span>
-            </button>
-            <button
-              type="button"
-              className={`toggle-option ${formData.entry_mode === 'bags' ? 'active' : ''}`}
-              onClick={() => setFormData({ ...formData, entry_mode: 'bags' })}
-            >
-              <span className="toggle-icon">🎒</span>
-              <span className="toggle-text">Bags</span>
-            </button>
+          {/* Purchase Date */}
+          <div className="form-group">
+            <label htmlFor="purchase_date">
+              Purchase Date <span className="required">*</span>
+            </label>
+            <DatePicker
+              value={formData.purchase_date}
+              onChange={handleDateChange}
+              maxDate={new Date()}
+              placeholder="Select purchase date"
+              required
+            />
+          </div>
+
+          {/* Entry Mode Toggle */}
+          <div className="form-group">
+            <label>Entry Mode <span className="required">*</span></label>
+            <div className="toggle-switch-container">
+              <button
+                type="button"
+                className={`toggle-option ${formData.entry_mode === 'pallets' ? 'active' : ''}`}
+                onClick={() => setFormData({ ...formData, entry_mode: 'pallets' })}
+              >
+                <span className="toggle-icon">📦</span>
+                <span className="toggle-text">Pallets</span>
+              </button>
+              <button
+                type="button"
+                className={`toggle-option ${formData.entry_mode === 'bags' ? 'active' : ''}`}
+                onClick={() => setFormData({ ...formData, entry_mode: 'bags' })}
+              >
+                <span className="toggle-icon">🎒</span>
+                <span className="toggle-text">Bags</span>
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Pallet Entry Mode */}
-        {formData.entry_mode === 'pallets' && (
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="num_pallets">
-                Number of Pallets <span className="required">*</span>
-              </label>
-              <input
-                type="number"
-                id="num_pallets"
-                name="num_pallets"
-                value={formData.num_pallets}
-                onChange={handleInputChange}
-                min="1"
-                step="1"
-                required
-              />
-            </div>
+        {/* SECTION: Quantity Details */}
+        <div className="form-section">
+          <h4 className="section-header">Quantity Details</h4>
 
-            <div className="form-group">
-              <label htmlFor="bags_per_pallet">Bags per Pallet</label>
-              <input
-                type="number"
-                id="bags_per_pallet"
-                name="bags_per_pallet"
-                value={formData.bags_per_pallet}
-                onChange={handleInputChange}
-                min="1"
-                step="1"
-              />
-            </div>
+          {/* Pallet Entry Mode */}
+          {formData.entry_mode === 'pallets' && (
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="num_pallets">
+                  Number of Pallets <span className="required">*</span>
+                </label>
+                <input
+                  type="number"
+                  id="num_pallets"
+                  name="num_pallets"
+                  value={formData.num_pallets}
+                  onChange={handleInputChange}
+                  min="1"
+                  step="1"
+                  required
+                />
+              </div>
 
-            <div className="form-group">
-              <label htmlFor="weight_per_bag">Weight per Bag (kg)</label>
-              <input
-                type="number"
-                id="weight_per_bag"
-                name="weight_per_bag"
-                value={formData.weight_per_bag}
-                onChange={handleInputChange}
-                min="0.1"
-                step="0.1"
-              />
-            </div>
-          </div>
-        )}
+              <div className="form-group">
+                <label htmlFor="bags_per_pallet">Bags per Pallet</label>
+                <input
+                  type="number"
+                  id="bags_per_pallet"
+                  name="bags_per_pallet"
+                  value={formData.bags_per_pallet}
+                  onChange={handleInputChange}
+                  min="1"
+                  step="1"
+                />
+              </div>
 
-        {/* Bag Entry Mode */}
-        {formData.entry_mode === 'bags' && (
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="num_bags">
-                Number of Bags <span className="required">*</span>
-              </label>
-              <input
-                type="number"
-                id="num_bags"
-                name="num_bags"
-                value={formData.num_bags}
-                onChange={handleInputChange}
-                min="1"
-                step="1"
-                required
-              />
+              <div className="form-group">
+                <label htmlFor="weight_per_bag">Weight per Bag (kg)</label>
+                <input
+                  type="number"
+                  id="weight_per_bag"
+                  name="weight_per_bag"
+                  value={formData.weight_per_bag}
+                  onChange={handleInputChange}
+                  min="0.1"
+                  step="0.1"
+                />
+              </div>
             </div>
+          )}
 
-            <div className="form-group">
-              <label htmlFor="weight_per_bag">Weight per Bag (kg)</label>
-              <input
-                type="number"
-                id="weight_per_bag"
-                name="weight_per_bag"
-                value={formData.weight_per_bag}
-                onChange={handleInputChange}
-                min="0.1"
-                step="0.1"
-              />
+          {/* Bag Entry Mode */}
+          {formData.entry_mode === 'bags' && (
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="num_bags">
+                  Number of Bags <span className="required">*</span>
+                </label>
+                <input
+                  type="number"
+                  id="num_bags"
+                  name="num_bags"
+                  value={formData.num_bags}
+                  onChange={handleInputChange}
+                  min="1"
+                  step="1"
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="weight_per_bag">Weight per Bag (kg)</label>
+                <input
+                  type="number"
+                  id="weight_per_bag"
+                  name="weight_per_bag"
+                  value={formData.weight_per_bag}
+                  onChange={handleInputChange}
+                  min="0.1"
+                  step="0.1"
+                />
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* Calculated Totals */}
         <div className="calculated-totals">
@@ -259,70 +269,79 @@ const StockPurchaseForm: React.FC<StockPurchaseFormProps> = ({
           </div>
           <div className="total-item">
             <span className="total-label">Total Weight:</span>
-            <span className="total-value">{formatNumber(totalWeightKg, 2)} kg</span>
-          </div>
-          <div className="total-item highlight">
-            <span className="total-label">Total Weight:</span>
-            <span className="total-value">{formatNumber(totalWeightTons, 3)} tons</span>
+            <span className="total-value">{formatNumber(totalWeightKg, 2)} kg ({formatNumber(totalWeightTons, 3)} tons)</span>
           </div>
         </div>
 
-        {/* Supplier */}
-        <div className="form-group">
-          <label htmlFor="supplier">Supplier (Optional)</label>
-          <input
-            type="text"
-            id="supplier"
-            name="supplier"
-            value={formData.supplier}
-            onChange={handleInputChange}
-            placeholder="e.g., Local Pellet Supplier"
-          />
-        </div>
+        {/* SECTION: Supplier & Pricing (Optional) */}
+        <div className="form-section form-section--optional">
+          <h4 className="section-header">
+            Supplier & Pricing <span className="optional-badge">Optional</span>
+          </h4>
 
-        {/* Pricing */}
-        <div className="form-row">
+          {/* Supplier */}
           <div className="form-group">
-            <label htmlFor="price_per_pallet">Price per Pallet ($)</label>
+            <label htmlFor="supplier">Supplier Name</label>
             <input
-              type="number"
-              id="price_per_pallet"
-              name="price_per_pallet"
-              value={formData.price_per_pallet}
+              type="text"
+              id="supplier"
+              name="supplier"
+              value={formData.supplier}
               onChange={handleInputChange}
-              min="0"
-              step="0.01"
-              placeholder="0.00"
+              placeholder="e.g., Local Pellet Supplier"
             />
           </div>
 
-          <div className="form-group">
-            <label htmlFor="total_cost">Total Cost ($)</label>
-            <input
-              type="number"
-              id="total_cost"
-              name="total_cost"
-              value={formData.total_cost}
-              onChange={handleInputChange}
-              min="0"
-              step="0.01"
-              placeholder="Auto-calculated"
-              readOnly={typeof formData.price_per_pallet === 'number'}
-            />
+          {/* Pricing */}
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="price_per_pallet">Price per Pallet ($)</label>
+              <input
+                type="number"
+                id="price_per_pallet"
+                name="price_per_pallet"
+                value={formData.price_per_pallet}
+                onChange={handleInputChange}
+                min="0"
+                step="0.01"
+                placeholder="0.00"
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="total_cost">Total Cost ($)</label>
+              <input
+                type="number"
+                id="total_cost"
+                name="total_cost"
+                value={formData.total_cost}
+                onChange={handleInputChange}
+                min="0"
+                step="0.01"
+                placeholder="Auto-calculated"
+                readOnly={typeof formData.price_per_pallet === 'number'}
+              />
+            </div>
           </div>
         </div>
 
-        {/* Notes */}
-        <div className="form-group">
-          <label htmlFor="notes">Notes (Optional)</label>
-          <textarea
-            id="notes"
-            name="notes"
-            value={formData.notes}
-            onChange={handleInputChange}
-            rows={3}
-            placeholder="Add any additional notes about this purchase..."
-          />
+        {/* SECTION: Additional Notes (Optional) */}
+        <div className="form-section form-section--optional">
+          <h4 className="section-header">
+            Additional Notes <span className="optional-badge">Optional</span>
+          </h4>
+
+          <div className="form-group">
+            <label htmlFor="notes">Notes</label>
+            <textarea
+              id="notes"
+              name="notes"
+              value={formData.notes}
+              onChange={handleInputChange}
+              rows={3}
+              placeholder="Add any additional notes about this purchase..."
+            />
+          </div>
         </div>
 
         {/* Form Actions */}

@@ -123,9 +123,15 @@ const ConsumptionHistory: React.FC<ConsumptionHistoryProps> = ({
               <th>Period</th>
               <th className="text-right">Bags Used</th>
               <th className="text-right">Weight (kg)</th>
-              <th className="text-center">Temp (°C)</th>
-              <th className="text-center">Hours</th>
-              <th>Notes</th>
+              <th className="text-center">
+                Temp (°C) <span className="optional-header">Optional</span>
+              </th>
+              <th className="text-center">
+                Hours <span className="optional-header">Optional</span>
+              </th>
+              <th>
+                Notes <span className="optional-header">Optional</span>
+              </th>
               {(onEdit || onDelete) && <th className="text-center">Actions</th>}
             </tr>
           </thead>
