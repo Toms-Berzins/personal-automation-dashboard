@@ -50,7 +50,18 @@ const ConsumptionHistory: React.FC<ConsumptionHistoryProps> = ({
         <div className="empty-state">
           <span className="empty-icon empty-icon--history"></span>
           <h3>No Consumption Records Yet</h3>
-          <p>Start logging your weekly pellet consumption to track your heating usage.</p>
+          <p className="empty-description">
+            Start logging your weekly pellet consumption to track your heating usage and optimize your purchases.
+          </p>
+          <div className="empty-tips">
+            <h4>Getting Started:</h4>
+            <ul>
+              <li>Switch to the <strong>"Log Usage"</strong> tab to record your first week</li>
+              <li>Enter the number of bags you've used this week</li>
+              <li>Optional: Add temperature and heating hours for better insights</li>
+              <li>Track patterns over time to predict when to reorder</li>
+            </ul>
+          </div>
         </div>
       </div>
     );

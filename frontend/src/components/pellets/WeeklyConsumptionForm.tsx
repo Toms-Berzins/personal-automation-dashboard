@@ -84,6 +84,19 @@ const WeeklyConsumptionForm: React.FC<WeeklyConsumptionFormProps> = ({
     }));
   };
 
+  // Keyboard support for arrow keys
+  const handleBagsKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      handleBagsIncrement();
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (formData.bags_used > 0) {
+        handleBagsDecrement();
+      }
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -182,6 +195,7 @@ const WeeklyConsumptionForm: React.FC<WeeklyConsumptionFormProps> = ({
               name="bags_used"
               value={formData.bags_used}
               onChange={handleInputChange}
+              onKeyDown={handleBagsKeyDown}
               min="0"
               step="1"
               required
@@ -191,7 +205,7 @@ const WeeklyConsumptionForm: React.FC<WeeklyConsumptionFormProps> = ({
               +
             </button>
           </div>
-          <p className="help-text">Use +/- buttons or type the number directly</p>
+          <p className="help-text">Use +/- buttons, arrow keys (↑/↓), or type directly</p>
         </div>
 
         {/* Weight Display & Override */}

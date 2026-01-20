@@ -23,6 +23,16 @@ const StockOverview: React.FC<StockOverviewProps> = ({
   const statusColor = getStockStatusColor(stockPercentage);
   const statusLabel = getStockStatusLabel(stockPercentage);
 
+  // Get tooltip text based on status
+  const getStatusTooltip = (percentage: number): string => {
+    if (percentage > 50) return 'Good Stock: > 50% remaining - No action needed';
+    if (percentage > 20) return 'Low Stock: 20-50% remaining - Consider ordering soon';
+    if (percentage > 0) return 'Critical: < 20% remaining - Order immediately!';
+    return 'Empty: 0% remaining - No stock available';
+  };
+
+  const statusTooltip = getStatusTooltip(stockPercentage);
+
   return (
     <div className="stock-overview">
       {/* Header */}
@@ -52,7 +62,11 @@ const StockOverview: React.FC<StockOverviewProps> = ({
       <div className="stock-card main-card">
         <div className="card-header">
           <h3>Remaining Stock</h3>
-          <span className="status-badge" style={{ backgroundColor: statusColor }}>
+          <span
+            className="status-badge"
+            style={{ backgroundColor: statusColor }}
+            title={statusTooltip}
+          >
             <span className="status-dot"></span> {statusLabel}
           </span>
         </div>

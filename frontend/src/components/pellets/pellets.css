@@ -1402,3 +1402,237 @@
 .btn-ghost:active {
   transform: translateY(0);
 }
+
+/* ================================
+   NUMBER INPUT IMPROVEMENTS
+   ================================ */
+
+/* Number Input Group with +/- Buttons */
+.number-input-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.number-input-group .number-input {
+  flex: 1;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 600;
+  padding: 14px 20px;
+  min-height: 52px;
+}
+
+/* Increment/Decrement Buttons - Larger Touch Targets */
+.btn-increment,
+.btn-decrement {
+  min-width: 52px;
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 700;
+  background: rgba(59, 130, 246, 0.15);
+  border: 2px solid rgba(59, 130, 246, 0.3);
+  border-radius: 12px;
+  color: var(--primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.btn-increment:hover:not(:disabled),
+.btn-decrement:hover:not(:disabled) {
+  background: rgba(59, 130, 246, 0.25);
+  border-color: var(--primary);
+  transform: scale(1.05);
+}
+
+.btn-increment:active:not(:disabled),
+.btn-decrement:active:not(:disabled) {
+  transform: scale(0.98);
+  background: rgba(59, 130, 246, 0.35);
+}
+
+.btn-increment:disabled,
+.btn-decrement:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  border-color: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.3);
+}
+
+/* Help text for number inputs */
+.help-text {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: 8px;
+  font-style: italic;
+}
+
+/* Keyboard hint */
+.help-text::before {
+  content: "💡 ";
+  margin-right: 4px;
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .btn-increment,
+  .btn-decrement {
+    min-width: 60px;
+    min-height: 60px;
+    font-size: 28px;
+  }
+
+  .number-input-group .number-input {
+    font-size: 20px;
+    min-height: 60px;
+  }
+}
+
+/* ================================
+   STATUS BADGE IMPROVEMENTS
+   ================================ */
+
+/* Make status badge hoverable */
+.status-badge {
+  cursor: help;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.status-badge:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* ================================
+   EMPTY STATE IMPROVEMENTS
+   ================================ */
+
+/* Enhanced Empty State */
+.empty-state {
+  text-align: center;
+  padding: 60px 40px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.empty-state h3 {
+  font-size: 24px;
+  color: var(--text-primary);
+  margin: 20px 0 12px;
+}
+
+.empty-description {
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.6;
+  margin-bottom: 32px;
+}
+
+.empty-tips {
+  background: rgba(59, 130, 246, 0.08);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: 12px;
+  padding: 24px 32px;
+  text-align: left;
+  margin-top: 24px;
+}
+
+.empty-tips h4 {
+  font-size: 16px;
+  color: var(--primary);
+  margin: 0 0 16px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.empty-tips h4::before {
+  content: "💡";
+  font-size: 20px;
+}
+
+.empty-tips ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.empty-tips li {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.8;
+  padding: 8px 0 8px 28px;
+  position: relative;
+}
+
+.empty-tips li::before {
+  content: "→";
+  position: absolute;
+  left: 0;
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.empty-tips strong {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+/* ================================
+   COLOR CONTRAST IMPROVEMENTS (WCAG AA)
+   ================================ */
+
+/* Improve secondary text contrast */
+.overview-subtitle,
+.stat-label,
+.stat-subvalue {
+  color: rgba(255, 255, 255, 0.75);  /* Improved from 0.6 to 0.75 for better contrast */
+}
+
+/* Form labels should have better contrast */
+label {
+  color: rgba(255, 255, 255, 0.9);  /* Improved from 0.7 to 0.9 */
+  font-weight: 500;
+}
+
+/* Table header text */
+.history-table th {
+  color: rgba(255, 255, 255, 0.85);  /* Improved from 0.7 */
+}
+
+/* Help text and hints */
+.help-text,
+.formula,
+.metric-description {
+  color: rgba(255, 255, 255, 0.7);  /* Improved from 0.5 */
+}
+
+/* Required field indicators */
+.required {
+  color: #ef4444;  /* Bright red for visibility */
+}
+
+/* Link text */
+a, .url-link {
+  color: #60a5fa;  /* Lighter blue for better contrast on dark bg */
+}
+
+a:hover, .url-link:hover {
+  color: #93c5fd;  /* Even lighter on hover */
+}
+
+/* Button text on primary buttons should be white */
+.btn-primary {
+  color: #ffffff;  /* Ensure white text */
+}
+
+/* Placeholder text */
+input::placeholder,
+textarea::placeholder {
+  color: rgba(255, 255, 255, 0.45);  /* Better visibility */
+}
