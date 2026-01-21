@@ -9,6 +9,7 @@ import consumptionRoutes from './routes/consumption.js';
 import pelletRoutes from './routes/pellets.js';
 import heatingRoutes from './routes/heating.js';
 import weatherRoutes from './routes/weather.js';
+import heaterRoutes from './routes/heater.js';
 
 const app = express();
 const PORT = process.env.BACKEND_PORT || 8000;
@@ -59,6 +60,7 @@ app.use('/api/consumption', consumptionRoutes);
 app.use('/api/pellets', pelletRoutes);
 app.use('/api/heating', heatingRoutes);
 app.use('/api/weather', weatherRoutes);
+app.use('/api/heater', heaterRoutes);
 
 // Health check
 app.get('/health', (req, res) => {
