@@ -3,7 +3,7 @@
  * Service layer for Centrometal PelTec Lambda heater data
  */
 
-import api from './api';
+import axios from 'axios';
 import type {
   HeaterStatus,
   HeaterStatistics,
@@ -26,7 +26,7 @@ import type {
  * Get latest heater status
  */
 export async function getLatestStatus(): Promise<HeaterStatus> {
-  const response = await api.get<ApiResponse<HeaterStatus>>('/heater/status/latest');
+  const response = await axios.get<ApiResponse<HeaterStatus>>('/heater/status/latest');
   if (!response.data.success || !response.data.data) {
     throw new Error(response.data.error || 'Failed to fetch heater status');
   }
@@ -37,7 +37,7 @@ export async function getLatestStatus(): Promise<HeaterStatus> {
  * Save new heater status snapshot
  */
 export async function saveStatus(data: SaveHeaterStatusRequest): Promise<HeaterStatus> {
-  const response = await api.post<ApiResponse<HeaterStatus>>('/heater/status', data);
+  const response = await axios.post<ApiResponse<HeaterStatus>>('/heater/status', data);
   if (!response.data.success || !response.data.data) {
     throw new Error(response.data.error || 'Failed to save heater status');
   }
@@ -51,7 +51,7 @@ export async function getStatusHistory(
   limit: number = 100,
   offset: number = 0
 ): Promise<HeaterStatus[]> {
-  const response = await api.get<ApiResponse<HeaterStatus[]>>('/heater/status/history', {
+  const response = await axios.get<ApiResponse<HeaterStatus[]>>('/heater/status/history', {
     params: { limit, offset },
   });
   if (!response.data.success || !response.data.data) {
@@ -68,7 +68,7 @@ export async function getStatusHistory(
  * Get latest heater statistics
  */
 export async function getLatestStatistics(): Promise<HeaterStatistics> {
-  const response = await api.get<ApiResponse<HeaterStatistics>>('/heater/statistics/latest');
+  const response = await axios.get<ApiResponse<HeaterStatistics>>('/heater/statistics/latest');
   if (!response.data.success || !response.data.data) {
     throw new Error(response.data.error || 'Failed to fetch heater statistics');
   }
@@ -79,7 +79,7 @@ export async function getLatestStatistics(): Promise<HeaterStatistics> {
  * Save heater statistics snapshot
  */
 export async function saveStatistics(data: SaveHeaterStatisticsRequest): Promise<HeaterStatistics> {
-  const response = await api.post<ApiResponse<HeaterStatistics>>('/heater/statistics', data);
+  const response = await axios.post<ApiResponse<HeaterStatistics>>('/heater/statistics', data);
   if (!response.data.success || !response.data.data) {
     throw new Error(response.data.error || 'Failed to save heater statistics');
   }
@@ -94,7 +94,7 @@ export async function saveStatistics(data: SaveHeaterStatisticsRequest): Promise
  * Get complete heater dashboard data (status + statistics combined)
  */
 export async function getDashboardData(): Promise<HeaterDashboardData> {
-  const response = await api.get<ApiResponse<HeaterDashboardData>>('/heater/dashboard');
+  const response = await axios.get<ApiResponse<HeaterDashboardData>>('/heater/dashboard');
   if (!response.data.success || !response.data.data) {
     throw new Error(response.data.error || 'Failed to fetch dashboard data');
   }
@@ -114,7 +114,7 @@ export async function getEvents(limit: number = 50, eventType?: string): Promise
     params.type = eventType;
   }
 
-  const response = await api.get<ApiResponse<HeaterEvent[]>>('/heater/events', { params });
+  const response = await axios.get<ApiResponse<HeaterEvent[]>>('/heater/events', { params });
   if (!response.data.success || !response.data.data) {
     throw new Error(response.data.error || 'Failed to fetch events');
   }
@@ -125,7 +125,7 @@ export async function getEvents(limit: number = 50, eventType?: string): Promise
  * Log a heater event
  */
 export async function logEvent(data: LogHeaterEventRequest): Promise<HeaterEvent> {
-  const response = await api.post<ApiResponse<HeaterEvent>>('/heater/events', data);
+  const response = await axios.post<ApiResponse<HeaterEvent>>('/heater/events', data);
   if (!response.data.success || !response.data.data) {
     throw new Error(response.data.error || 'Failed to log event');
   }
@@ -143,7 +143,7 @@ export async function getFuelConsumption(
   startDate: string,
   endDate: string
 ): Promise<FuelConsumptionData> {
-  const response = await api.get<ApiResponse<FuelConsumptionData>>(
+  const response = await axios.get<ApiResponse<FuelConsumptionData>>(
     '/heater/analytics/fuel-consumption',
     {
       params: { start_date: startDate, end_date: endDate },
@@ -162,7 +162,7 @@ export async function getEfficiencyMetrics(
   startDate: string,
   endDate: string
 ): Promise<EfficiencyMetrics> {
-  const response = await api.get<ApiResponse<EfficiencyMetrics>>('/heater/analytics/efficiency', {
+  const response = await axios.get<ApiResponse<EfficiencyMetrics>>('/heater/analytics/efficiency', {
     params: { start_date: startDate, end_date: endDate },
   });
   if (!response.data.success || !response.data.data) {
@@ -179,7 +179,7 @@ export async function getEfficiencyMetrics(
  * Get correlation between heater and pellet consumption for a specific week
  */
 export async function getCorrelation(weekStartDate: string): Promise<HeaterCorrelationData> {
-  const response = await api.get<ApiResponse<HeaterCorrelationData>>(
+  const response = await axios.get<ApiResponse<HeaterCorrelationData>>(
     `/heater/correlation/${weekStartDate}`
   );
   if (!response.data.success || !response.data.data) {
