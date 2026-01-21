@@ -6,9 +6,10 @@ import AIChatWidget from './components/AIChatWidget';
 import AIInsightsPanel from './components/AIInsightsPanel';
 import UsageTracker from './components/UsageTracker';
 import PelletTracker from './components/pellets/PelletTracker';
+import WeatherDashboard from './components/weather/WeatherDashboard';
 import './styles/App.css';
 
-type Tab = 'scraper' | 'history' | 'pellets' | 'usage' | 'ai-insights';
+type Tab = 'scraper' | 'history' | 'pellets' | 'weather' | 'usage' | 'ai-insights';
 
 function App() {
   const [activeTab, setActiveTab] = useState<Tab>('scraper');
@@ -18,6 +19,7 @@ function App() {
       scraper: 'Web Scraper',
       history: 'Price History',
       pellets: 'Pellet Tracker',
+      weather: 'Weather Forecast',
       usage: 'Usage Tracker',
       'ai-insights': 'AI Insights',
     };
@@ -29,6 +31,7 @@ function App() {
       scraper: 'On-demand web scraping powered by Firecrawl API',
       history: 'Track price trends and historical data',
       pellets: 'Track pellet stock, consumption, and heating material inventory',
+      weather: 'Live weather forecast and historical data for Jelgava, Latvia',
       usage: 'Monitor API usage and consumption metrics',
       'ai-insights': 'AI-powered analysis and insights',
     };
@@ -51,6 +54,7 @@ function App() {
           {activeTab === 'scraper' && <ScraperDashboard />}
           {activeTab === 'history' && <PriceHistory />}
           {activeTab === 'pellets' && <PelletTracker />}
+          {activeTab === 'weather' && <WeatherDashboard />}
           {activeTab === 'usage' && <UsageTracker />}
           {activeTab === 'ai-insights' && <AIInsightsPanel />}
         </main>
