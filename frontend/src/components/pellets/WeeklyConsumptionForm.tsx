@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import type { ConsumptionFormData, CreateConsumption, Consumption } from '../../types/pellets';
 import { getWeekYear, getWeekBounds, formatDateISO } from '../../services/pelletApi';
+import { getWeeklySummary, getCurrentWeather } from '../../services/weatherApi';
 
 interface WeeklyConsumptionFormProps {
   initialData?: Consumption;
@@ -25,6 +26,8 @@ const WeeklyConsumptionForm: React.FC<WeeklyConsumptionFormProps> = ({
   const [weekInfo, setWeekInfo] = useState({ weekYear: '', weekStart: '', weekEnd: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isFetchingWeather, setIsFetchingWeather] = useState(false);
+  const [weatherFetched, setWeatherFetched] = useState(false);
 
   // Calculate week info when date changes
   useEffect(() => {
@@ -94,6 +97,51 @@ const WeeklyConsumptionForm: React.FC<WeeklyConsumptionFormProps> = ({
       if (formData.bags_used > 0) {
         handleBagsDecrement();
       }
+    }
+  };
+
+  // Fetch weather data for the selected week
+  const handleFetchWeather = async () => {
+    if (!weekInfo.weekStart) {
+      setError('Please select a date first');
+      return;
+    }
+
+    setIsFetchingWeather(true);
+    setError(null);
+
+    try {
+      // Check if the week is in the past or current week
+      const weekStartDate = new Date(weekInfo.weekStart);
+      const today = new Date();
+      const isCurrentOrFutureWeek = weekStartDate >= today;
+
+      if (isCurrentOrFutureWeek) {
+        // For current/future week, use current weather
+        const currentWeather = await getCurrentWeather();
+        setFormData((prev) => ({
+          ...prev,
+          temperature_avg: Math.round(currentWeather.temperature.actual * 10) / 10,
+        }));
+        setWeatherFetched(true);
+      } else {
+        // For past weeks, use weekly summary
+        const weeklySummary = await getWeeklySummary(weekInfo.weekStart);
+        if (weeklySummary.average_temperature !== null) {
+          setFormData((prev) => ({
+            ...prev,
+            temperature_avg: weeklySummary.average_temperature,
+          }));
+          setWeatherFetched(true);
+        } else {
+          setError('Weather data not available for this week');
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching weather:', err);
+      setError('Failed to fetch weather data. Please enter manually.');
+    } finally {
+      setIsFetchingWeather(false);
     }
   };
 
@@ -240,15 +288,43 @@ const WeeklyConsumptionForm: React.FC<WeeklyConsumptionFormProps> = ({
                 Average Temperature (°C)
                 <span className="info-icon" title="Helps analyze consumption patterns"></span>
               </label>
-              <input
-                type="number"
-                id="temperature_avg"
-                name="temperature_avg"
-                value={formData.temperature_avg}
-                onChange={handleInputChange}
-                step="0.1"
-                placeholder="e.g., 5.5"
-              />
+              <div className="input-with-button">
+                <input
+                  type="number"
+                  id="temperature_avg"
+                  name="temperature_avg"
+                  value={formData.temperature_avg}
+                  onChange={handleInputChange}
+                  step="0.1"
+                  placeholder="e.g., 5.5"
+                />
+                <button
+                  type="button"
+                  className={`btn btn-ghost btn-sm ${weatherFetched ? 'btn-success' : ''}`}
+                  onClick={handleFetchWeather}
+                  disabled={isFetchingWeather || !weekInfo.weekStart}
+                  title="Fetch weather data for this week"
+                >
+                  {isFetchingWeather ? (
+                    <>
+                      <span className="spinner-small"></span>
+                    </>
+                  ) : weatherFetched ? (
+                    <>
+                      ✓ ☁️
+                    </>
+                  ) : (
+                    <>
+                      ☁️ Get Weather
+                    </>
+                  )}
+                </button>
+              </div>
+              {weatherFetched && (
+                <p className="help-text success-text">
+                  ✓ Weather data fetched from Open-Meteo
+                </p>
+              )}
             </div>
 
             <div className="form-group">
