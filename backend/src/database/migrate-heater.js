@@ -2,6 +2,9 @@
  * Run heater tables migration
  */
 
+// IMPORTANT: Load environment variables FIRST
+import '../config/env.js';
+
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { readFileSync } from 'fs';
