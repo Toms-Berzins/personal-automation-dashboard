@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import ScraperDashboard from './components/ScraperDashboard';
 import PriceHistory from './components/PriceHistory';
@@ -13,7 +13,25 @@ import './styles/App.css';
 type Tab = 'scraper' | 'history' | 'pellets' | 'heater' | 'weather' | 'usage' | 'ai-insights';
 
 function App() {
-  const [activeTab, setActiveTab] = useState<Tab>('scraper');
+  // Read initial tab from URL hash
+  const getInitialTab = (): Tab => {
+    const hash = window.location.hash.replace('#/', '').replace('#', '');
+    const validTabs: Tab[] = ['scraper', 'history', 'pellets', 'heater', 'weather', 'usage', 'ai-insights'];
+    return validTabs.includes(hash as Tab) ? (hash as Tab) : 'scraper';
+  };
+
+  const [activeTab, setActiveTab] = useState<Tab>(getInitialTab());
+
+  // Listen for hash changes
+  useEffect(() => {
+    const handleHashChange = () => {
+      const newTab = getInitialTab();
+      setActiveTab(newTab);
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
 
   const getPageTitle = (tab: Tab): string => {
     const titles = {
@@ -41,9 +59,16 @@ function App() {
     return descriptions[tab];
   };
 
+  // Handle tab change and update URL
+  const handleTabChange = (tab: string) => {
+    const newTab = tab as Tab;
+    setActiveTab(newTab);
+    window.location.hash = `#/${newTab}`;
+  };
+
   return (
     <div className="app">
-      <Sidebar activeTab={activeTab} onTabChange={(tab) => setActiveTab(tab as Tab)} />
+      <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
 
       <div className="app-content">
         <header className="page-header">

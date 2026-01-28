@@ -18,6 +18,8 @@ import type {
   ApiResponse,
 } from '../types/heater';
 
+const API_BASE = '/api';
+
 // ============================================
 // Heater Status API
 // ============================================
@@ -26,7 +28,7 @@ import type {
  * Get latest heater status
  */
 export async function getLatestStatus(): Promise<HeaterStatus> {
-  const response = await axios.get<ApiResponse<HeaterStatus>>('/heater/status/latest');
+  const response = await axios.get<ApiResponse<HeaterStatus>>(`${API_BASE}/heater/status/latest`);
   if (!response.data.success || !response.data.data) {
     throw new Error(response.data.error || 'Failed to fetch heater status');
   }
@@ -37,7 +39,7 @@ export async function getLatestStatus(): Promise<HeaterStatus> {
  * Save new heater status snapshot
  */
 export async function saveStatus(data: SaveHeaterStatusRequest): Promise<HeaterStatus> {
-  const response = await axios.post<ApiResponse<HeaterStatus>>('/heater/status', data);
+  const response = await axios.post<ApiResponse<HeaterStatus>>(`${API_BASE}/heater/status`, data);
   if (!response.data.success || !response.data.data) {
     throw new Error(response.data.error || 'Failed to save heater status');
   }
@@ -51,7 +53,7 @@ export async function getStatusHistory(
   limit: number = 100,
   offset: number = 0
 ): Promise<HeaterStatus[]> {
-  const response = await axios.get<ApiResponse<HeaterStatus[]>>('/heater/status/history', {
+  const response = await axios.get<ApiResponse<HeaterStatus[]>>(`${API_BASE}/heater/status/history`, {
     params: { limit, offset },
   });
   if (!response.data.success || !response.data.data) {
@@ -68,7 +70,7 @@ export async function getStatusHistory(
  * Get latest heater statistics
  */
 export async function getLatestStatistics(): Promise<HeaterStatistics> {
-  const response = await axios.get<ApiResponse<HeaterStatistics>>('/heater/statistics/latest');
+  const response = await axios.get<ApiResponse<HeaterStatistics>>(`${API_BASE}/heater/statistics/latest`);
   if (!response.data.success || !response.data.data) {
     throw new Error(response.data.error || 'Failed to fetch heater statistics');
   }
@@ -79,7 +81,7 @@ export async function getLatestStatistics(): Promise<HeaterStatistics> {
  * Save heater statistics snapshot
  */
 export async function saveStatistics(data: SaveHeaterStatisticsRequest): Promise<HeaterStatistics> {
-  const response = await axios.post<ApiResponse<HeaterStatistics>>('/heater/statistics', data);
+  const response = await axios.post<ApiResponse<HeaterStatistics>>(`${API_BASE}/heater/statistics`, data);
   if (!response.data.success || !response.data.data) {
     throw new Error(response.data.error || 'Failed to save heater statistics');
   }
@@ -94,7 +96,7 @@ export async function saveStatistics(data: SaveHeaterStatisticsRequest): Promise
  * Get complete heater dashboard data (status + statistics combined)
  */
 export async function getDashboardData(): Promise<HeaterDashboardData> {
-  const response = await axios.get<ApiResponse<HeaterDashboardData>>('/heater/dashboard');
+  const response = await axios.get<ApiResponse<HeaterDashboardData>>(`${API_BASE}/heater/dashboard`);
   if (!response.data.success || !response.data.data) {
     throw new Error(response.data.error || 'Failed to fetch dashboard data');
   }
@@ -114,7 +116,7 @@ export async function getEvents(limit: number = 50, eventType?: string): Promise
     params.type = eventType;
   }
 
-  const response = await axios.get<ApiResponse<HeaterEvent[]>>('/heater/events', { params });
+  const response = await axios.get<ApiResponse<HeaterEvent[]>>(`${API_BASE}/heater/events`, { params });
   if (!response.data.success || !response.data.data) {
     throw new Error(response.data.error || 'Failed to fetch events');
   }
@@ -125,7 +127,7 @@ export async function getEvents(limit: number = 50, eventType?: string): Promise
  * Log a heater event
  */
 export async function logEvent(data: LogHeaterEventRequest): Promise<HeaterEvent> {
-  const response = await axios.post<ApiResponse<HeaterEvent>>('/heater/events', data);
+  const response = await axios.post<ApiResponse<HeaterEvent>>(`${API_BASE}/heater/events`, data);
   if (!response.data.success || !response.data.data) {
     throw new Error(response.data.error || 'Failed to log event');
   }
@@ -144,7 +146,7 @@ export async function getFuelConsumption(
   endDate: string
 ): Promise<FuelConsumptionData> {
   const response = await axios.get<ApiResponse<FuelConsumptionData>>(
-    '/heater/analytics/fuel-consumption',
+    `${API_BASE}/heater/analytics/fuel-consumption`,
     {
       params: { start_date: startDate, end_date: endDate },
     }
@@ -162,7 +164,7 @@ export async function getEfficiencyMetrics(
   startDate: string,
   endDate: string
 ): Promise<EfficiencyMetrics> {
-  const response = await axios.get<ApiResponse<EfficiencyMetrics>>('/heater/analytics/efficiency', {
+  const response = await axios.get<ApiResponse<EfficiencyMetrics>>(`${API_BASE}/heater/analytics/efficiency`, {
     params: { start_date: startDate, end_date: endDate },
   });
   if (!response.data.success || !response.data.data) {
@@ -180,7 +182,7 @@ export async function getEfficiencyMetrics(
  */
 export async function getCorrelation(weekStartDate: string): Promise<HeaterCorrelationData> {
   const response = await axios.get<ApiResponse<HeaterCorrelationData>>(
-    `/heater/correlation/${weekStartDate}`
+    `${API_BASE}/heater/correlation/${weekStartDate}`
   );
   if (!response.data.success || !response.data.data) {
     throw new Error(response.data.error || 'Failed to fetch correlation data');
@@ -195,26 +197,32 @@ export async function getCorrelation(weekStartDate: string): Promise<HeaterCorre
 /**
  * Format temperature with unit
  */
-export function formatTemperature(temp: number | undefined): string {
+export function formatTemperature(temp: number | string | undefined): string {
   if (temp === undefined || temp === null) return '—';
-  return `${temp.toFixed(1)}°C`;
+  const numTemp = typeof temp === 'string' ? parseFloat(temp) : temp;
+  if (isNaN(numTemp)) return '—';
+  return `${numTemp.toFixed(1)}°C`;
 }
 
 /**
  * Format fuel consumption with unit
  */
-export function formatFuelConsumption(kg: number | undefined): string {
+export function formatFuelConsumption(kg: number | string | undefined): string {
   if (kg === undefined || kg === null) return '—';
-  return `${kg.toFixed(1)} kg`;
+  const numKg = typeof kg === 'string' ? parseFloat(kg) : kg;
+  if (isNaN(numKg)) return '—';
+  return `${numKg.toFixed(1)} kg`;
 }
 
 /**
  * Format operating hours
  */
-export function formatOperatingHours(minutes: number | undefined): string {
+export function formatOperatingHours(minutes: number | string | undefined): string {
   if (minutes === undefined || minutes === null) return '—';
-  const hours = Math.floor(minutes / 60);
-  const mins = Math.floor(minutes % 60);
+  const numMinutes = typeof minutes === 'string' ? parseFloat(minutes) : minutes;
+  if (isNaN(numMinutes)) return '—';
+  const hours = Math.floor(numMinutes / 60);
+  const mins = Math.floor(numMinutes % 60);
   return `${hours}h ${mins}m`;
 }
 

@@ -1,0 +1,4 @@
+# Python dependencies for Centrometal scraper
+requests==2.31.0
+python-dotenv>=1.1.0
+psycopg[binary]==3.2.3

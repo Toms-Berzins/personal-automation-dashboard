@@ -4,6 +4,17 @@
  */
 
 import React from 'react';
+import {
+  Play,
+  Square,
+  XCircle,
+  Bell,
+  Fuel,
+  Sparkles,
+  Wrench,
+  Thermometer,
+  FileText,
+} from 'lucide-react';
 import { getSeverityColorClass } from '../../services/heaterApi';
 import type { HeaterEvent } from '../../types/heater';
 
@@ -23,18 +34,18 @@ const HeaterEvents: React.FC<HeaterEventsProps> = ({ events }) => {
     return date.toLocaleDateString();
   };
 
-  const getEventIcon = (eventType: string): string => {
-    const iconMap: Record<string, string> = {
-      start: '🟢',
-      stop: '🔴',
-      error: '❌',
-      alarm: '🚨',
-      fuel_low: '⛽',
-      cleaning: '🧹',
-      maintenance: '🔧',
-      temperature: '🌡️',
+  const getEventIcon = (eventType: string): React.ReactNode => {
+    const iconMap: Record<string, React.ReactNode> = {
+      start: <Play size={20} strokeWidth={2} />,
+      stop: <Square size={20} strokeWidth={2} />,
+      error: <XCircle size={20} strokeWidth={2} />,
+      alarm: <Bell size={20} strokeWidth={2} />,
+      fuel_low: <Fuel size={20} strokeWidth={2} />,
+      cleaning: <Sparkles size={20} strokeWidth={2} />,
+      maintenance: <Wrench size={20} strokeWidth={2} />,
+      temperature: <Thermometer size={20} strokeWidth={2} />,
     };
-    return iconMap[eventType] || '📋';
+    return iconMap[eventType] || <FileText size={20} strokeWidth={2} />;
   };
 
   if (events.length === 0) {
@@ -44,7 +55,14 @@ const HeaterEvents: React.FC<HeaterEventsProps> = ({ events }) => {
           <h2 className="section-title">Recent Events</h2>
         </div>
         <div className="events-empty">
-          <p>No recent events</p>
+          <div className="events-empty-icon">
+            <FileText size={48} strokeWidth={1.5} />
+          </div>
+          <h3 className="events-empty-title">No Recent Events</h3>
+          <p>No heater events have been logged in the last 24 hours.</p>
+          <p className="events-empty-help">
+            Events such as start/stop, errors, alarms, and maintenance activities will appear here.
+          </p>
         </div>
       </div>
     );
@@ -63,7 +81,7 @@ const HeaterEvents: React.FC<HeaterEventsProps> = ({ events }) => {
             key={event.id}
             className={`event-item ${getSeverityColorClass(event.severity)}`}
           >
-            <div className="event-icon">{getEventIcon(event.event_type)}</div>
+            <div className="event-icon icon-animated">{getEventIcon(event.event_type)}</div>
             <div className="event-content">
               <div className="event-header">
                 <span className="event-type">{event.event_type.replace('_', ' ')}</span>

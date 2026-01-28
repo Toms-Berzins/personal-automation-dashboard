@@ -1,0 +1,147 @@
+/**
+ * Tooltip Styles
+ */
+
+.tooltip-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.tooltip-trigger {
+  display: inline-flex;
+  align-items: center;
+  cursor: help;
+}
+
+.tooltip {
+  position: fixed;
+  z-index: 10000;
+  padding: 0.5rem 0.75rem;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  box-shadow: 0 4px 12px var(--shadow);
+  pointer-events: none;
+  white-space: normal;
+  max-width: 250px;
+  word-wrap: break-word;
+  animation: tooltipFadeIn 0.15s ease-out;
+}
+
+@keyframes tooltipFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.tooltip-content {
+  position: relative;
+}
+
+.tooltip-arrow {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  transform: rotate(45deg);
+}
+
+/* Position: Top (default) */
+.tooltip-top {
+  transform: translate(-50%, calc(-100% - 8px));
+}
+
+.tooltip-top .tooltip-arrow {
+  bottom: -5px;
+  left: 50%;
+  margin-left: -4px;
+  border-top: none;
+  border-left: none;
+}
+
+/* Position: Bottom */
+.tooltip-bottom {
+  transform: translate(-50%, 8px);
+}
+
+.tooltip-bottom .tooltip-arrow {
+  top: -5px;
+  left: 50%;
+  margin-left: -4px;
+  border-bottom: none;
+  border-right: none;
+}
+
+/* Position: Left */
+.tooltip-left {
+  transform: translate(calc(-100% - 8px), -50%);
+}
+
+.tooltip-left .tooltip-arrow {
+  right: -5px;
+  top: 50%;
+  margin-top: -4px;
+  border-left: none;
+  border-bottom: none;
+}
+
+/* Position: Right */
+.tooltip-right {
+  transform: translate(8px, -50%);
+}
+
+.tooltip-right .tooltip-arrow {
+  left: -5px;
+  top: 50%;
+  margin-top: -4px;
+  border-right: none;
+  border-top: none;
+}
+
+/* Theme specific adjustments */
+:root[data-theme='light'] .tooltip {
+  background: #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05);
+}
+
+:root[data-theme='light'] .tooltip-arrow {
+  background: #ffffff;
+}
+
+/* Help icon for missing data */
+.tooltip-help-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  margin-left: 4px;
+  font-size: 12px;
+  color: var(--heater-text-muted);
+  border: 1px solid var(--heater-border);
+  border-radius: 50%;
+  cursor: help;
+  transition: all 0.2s ease;
+  vertical-align: middle;
+}
+
+.tooltip-help-icon:hover {
+  color: var(--primary);
+  border-color: var(--primary);
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.missing-value-wrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}

@@ -146,9 +146,25 @@ export async function getDashboardData(req, res) {
       });
     }
 
+    // Transform string values to numbers for frontend compatibility
+    const transformedData = {
+      ...data,
+      main_temperature: data.main_temperature ? parseFloat(data.main_temperature) : null,
+      supply_temperature: data.supply_temperature ? parseFloat(data.supply_temperature) : null,
+      return_temperature: data.return_temperature ? parseFloat(data.return_temperature) : null,
+      buffer_tank_temperature: data.buffer_tank_temperature ? parseFloat(data.buffer_tank_temperature) : null,
+      radiator_temperature: data.radiator_temperature ? parseFloat(data.radiator_temperature) : null,
+      external_temperature: data.external_temperature ? parseFloat(data.external_temperature) : null,
+      oxygen_level: data.oxygen_level ? parseFloat(data.oxygen_level) : null,
+      burner_work_minutes: data.burner_work_minutes ? parseFloat(data.burner_work_minutes) : null,
+      burner_start_count: data.burner_start_count ? parseInt(data.burner_start_count) : null,
+      fuel_consumed_kg: data.fuel_consumed_kg ? parseFloat(data.fuel_consumed_kg) : null,
+      fan_working_minutes: data.fan_working_minutes ? parseFloat(data.fan_working_minutes) : null,
+    };
+
     res.json({
       success: true,
-      data,
+      data: transformedData,
     });
   } catch (error) {
     console.error('Error in getDashboardData:', error);

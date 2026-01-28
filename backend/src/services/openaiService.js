@@ -114,6 +114,12 @@ Return response in JSON format with:
 async function generateInsights(priceData, options = {}) {
   try {
     const client = getOpenAIClient();
+    const summaryBlock = options.summary
+      ? `Data summary (authoritative):\n${JSON.stringify(options.summary, null, 2)}`
+      : 'Data summary: not provided.';
+    const timeframeBlock = options.days
+      ? `Analysis window: last ${options.days} days.`
+      : 'Analysis window: not specified.';
     const completion = await client.chat.completions.create({
       model: process.env.OPENAI_MODEL || 'gpt-5-nano',
       messages: [
@@ -131,6 +137,9 @@ Each insight should have:
 - actionable: true if user can act on it
 
 Also provide a brief summary of overall market conditions.
+Use the data summary as the source of truth, and reference concrete numbers when possible.
+If data coverage is thin or inconsistent, lower confidence and say so in the descriptions.
+Do not invent details that are not supported by the summary or sample records.
 
 Respond in JSON format with this structure:
 {
@@ -140,7 +149,7 @@ Respond in JSON format with this structure:
         },
         {
           role: 'user',
-          content: `Analyze this price data and generate insights:\n${JSON.stringify(priceData, null, 2)}`
+          content: `${timeframeBlock}\n${summaryBlock}\n\nSample records (most recent first):\n${JSON.stringify(priceData, null, 2)}`
         }
       ],
       // GPT-5 Nano only supports default temperature (1)
@@ -148,7 +157,12 @@ Respond in JSON format with this structure:
     });
 
     const result = JSON.parse(completion.choices[0].message.content);
-    return result;
+    const parsed = InsightSchema.safeParse(result);
+    if (!parsed.success) {
+      console.warn('AI insights schema mismatch:', parsed.error);
+      return result;
+    }
+    return parsed.data;
   } catch (error) {
     console.error('Error generating insights:', error);
     throw new Error(`Failed to generate insights: ${error.message}`);
@@ -261,10 +275,12 @@ Current context: ${JSON.stringify(context, null, 2)}
 When users ask questions:
 1. Understand their intent
 2. Reference both price AND consumption data in the context
-3. Provide clear, actionable answers
-4. Combine usage patterns with price trends for better recommendations
-5. For example: "Based on your average monthly consumption of ${context.consumption?.avg_monthly_kg || 'N/A'} kg and current prices, you should..."
-6. Suggest visualizations when helpful
+3. Provide a direct answer first (1-2 sentences)
+4. Then list key evidence/assumptions as 2-4 short bullets
+5. End with one next step OR one clarifying question if details are missing
+6. Combine usage patterns with price trends for better recommendations
+7. Use numbers and time ranges from context; do not invent missing data
+8. If data is missing or stale, say what is missing and how to improve it
 
 Key capabilities:
 - Analyze consumption patterns (heating season vs summer)

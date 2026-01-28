@@ -1,6 +1,7 @@
 {
   "name": "personal-automation-dashboard",
   "version": "1.0.0",
+  "type": "module",
   "description": "Multi-section dashboard for web scraping and automation powered by Firecrawl",
   "main": "index.js",
   "scripts": {
@@ -8,6 +9,10 @@
     "build": "cd frontend && npm run build",
     "start": "cd frontend && npm start",
     "scrape:granules": "node scripts/scrape-granules.js",
+    "scrape:heater:debug": "node tools/scrapers/centrometal-debug.js",
+    "scrape:heater": "node tools/scrapers/centrometal-scraper.js",
+    "scrape:heater:python": "python tools/scrapers/centrometal_scraper.py",
+    "scrape:heater:install": "pip install -r tools/scrapers/requirements.txt",
     "test": "echo \"Error: no test specified\" && exit 1",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
@@ -30,6 +35,11 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/Toms-Berzins/personal-automation-dashboard.git"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "axios": "^1.7.9",
+    "pg": "^8.13.1"
   },
   "devDependencies": {
     "@playwright/test": "^1.56.1",

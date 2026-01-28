@@ -295,7 +295,7 @@ const StockPurchaseForm: React.FC<StockPurchaseFormProps> = ({
           {/* Pricing */}
           <div className="form-row">
             <div className="form-group">
-              <label htmlFor="price_per_pallet">Price per Pallet ($)</label>
+              <label htmlFor="price_per_pallet">Price per Pallet (€)</label>
               <input
                 type="number"
                 id="price_per_pallet"
@@ -309,7 +309,7 @@ const StockPurchaseForm: React.FC<StockPurchaseFormProps> = ({
             </div>
 
             <div className="form-group">
-              <label htmlFor="total_cost">Total Cost ($)</label>
+              <label htmlFor="total_cost">Total Cost (€)</label>
               <input
                 type="number"
                 id="total_cost"
